@@ -1,12 +1,12 @@
-// Donna — Decision Mode. One decision at a time; everything else hidden.
+// Donna dashboard — fetches state and renders the calm focus view.
 const $ = (id) => document.getElementById(id);
 const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => (s || "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const SRC = { gmail: "✉ Gmail", telegram: "✈ Telegram", calendar: "◷ Calendar", system: "•" };
 
-let state = null, queue = [], i = 0;
+const SRC_ICON = { gmail: "✉", telegram: "✈", calendar: "◷", system: "•" };
 
+// ── Theme toggle (stamps data-theme so it beats the media query both ways) ──
 $("theme").onclick = () => {
   const root = document.documentElement;
   const dark = matchMedia("(prefers-color-scheme: dark)").matches;
@@ -14,111 +14,57 @@ $("theme").onclick = () => {
   root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
 };
 
-async function load() {
-  state = await api("/api/state");
-  queue = state.needs_you;
-  i = 0;
-  $("greet").textContent = state.greeting;
-  renderMore();
-  render();
+function label(name, count) {
+  return `<div class="label"><span>${name}</span><div class="rule"></div>` +
+         `<div class="count">${count}</div></div>`;
 }
 
-function render() {
-  const left = queue.length - i;
-  $("sub").innerHTML =
-    `<b>${left} decision${left === 1 ? "" : "s"}</b> · I handled ${state.thesis.handled} others.`;
-
-  const routine = queue.slice(i).filter((it) => it.draft).length;
-  const batch = $("batch");
-  if (routine > 1) {
-    batch.hidden = false;
-    batch.textContent = `⚡ Approve all ${routine} routine replies at once`;
-    batch.onclick = approveAll;
-  } else batch.hidden = true;
-
-  if (i >= queue.length) {
-    $("live").style.display = "none";
-    $("doneScreen").classList.add("show");
-    return;
-  }
-  $("progress").innerHTML = queue.map((_, n) =>
-    `<div class="dot ${n < i ? "done" : n === i ? "on" : ""}"></div>`).join("");
-
-  const it = queue[i];
-  const d = it.draft;
-  const pri = ["urgent", "high"].includes(it.priority);
-  const yes = it.source === "calendar" ? "Do it" : "Approve & send";
-  // Show Donna's actual reply on the card (editable inline), not just a summary.
-  const replyBlock = d
-    ? `<div class="reply"><span class="tag">Donna's reply — tweak it if you like</span>
-         <textarea id="reply">${esc(d.body)}</textarea></div>`
-    : `<div class="line act"><span class="k">Donna will</span><span class="v">${esc(it.reason || "Review this")}</span></div>`;
-  const orig = it.body
-    ? `<button class="details" onclick="this.nextElementSibling.classList.toggle('show')">See the original message</button><div class="full">${esc(it.body)}</div>`
+function needsCard(it) {
+  const cls = ["urgent", "high"].includes(it.priority) ? "card urgent" : "card";
+  const original = it.body || it.snippet || "";
+  const who = (it.sender || "").split("—")[0].trim();
+  const long = original.length > 140;
+  const incoming = original
+    ? `<div class="incoming">
+         <span class="tag">What you're replying to${who ? " · " + esc(who) : ""}</span>
+         <p class="msg ${long ? "clamp" : ""}" id="m${it.id}">${esc(original)}</p>
+         ${long ? `<button class="more" onclick="toggleMsg(${it.id}, this)">Show full message</button>` : ""}
+       </div>`
     : "";
-
-  $("cardslot").innerHTML = `<div class="card ${pri ? "urgent" : ""}">
+  const draft = it.draft
+    ? `<div class="donna"><span class="tag">Donna drafted a reply · in your voice</span>
+         <p id="d${it.draft.id}">${esc(it.draft.body)}</p></div>
+       <div class="actions">
+         <button class="btn primary" onclick="approve(${it.draft.id})">Approve &amp; send</button>
+         <button class="btn ghost" onclick="editDraft(${it.draft.id})">Edit</button>
+         <button class="btn ghost" onclick="dismiss(${it.id}, this)">Dismiss</button>
+       </div>`
+    : `<div class="actions">
+         <button class="btn ghost" onclick="dismiss(${it.id}, this)">Dismiss</button>
+       </div>`;
+  return `<div class="${cls}" data-item="${it.id}" data-draft="${it.draft ? it.draft.id : ""}">
     <div class="meta">
-      ${pri ? `<span class="chip pri">● ${esc(it.priority)}</span>` : ""}
-      <span class="chip src">${SRC[it.source] || ""}</span>
-      <span class="who">${esc((it.sender || "").split("—")[0].trim())}</span>
+      <span class="chip pri">● ${esc(it.priority)}</span>
+      <span class="chip src">${SRC_ICON[it.source] || ""} ${esc(it.source)}</span>
+      <span class="who">${esc(it.sender || "")}</span>
       <span class="when">${esc(it.when || "")}</span>
     </div>
-    <h2 class="subject">${esc(it.subject || "(no subject)")}</h2>
-    <div class="line"><span class="k">What it's about</span><span class="v">${esc(it.snippet || "")}</span></div>
-    ${replyBlock}
-    ${orig}
-    <div class="actions">
-      <button class="btn primary" onclick="decide('approve')">${yes}</button>
-      <button class="btn ghost" onclick="decide('skip')">Skip</button>
-    </div>
-    <div class="hint">← Skip · Approve →</div>
+    <h3>${esc(it.subject || "(no subject)")}</h3>
+    ${incoming}
+    ${draft}
+    <div class="hint">← Dismiss · Approve →</div>
   </div>`;
-  attachSwipe($("cardslot").querySelector(".card"));
-  const ta = document.getElementById("reply");
-  if (ta) {  // grow to fit the whole reply, and on edit
-    const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
-    grow(); ta.addEventListener("input", grow);
-  }
 }
 
-const firstSentence = (t) => (t || "").split(/(?<=[.!?])\s/)[0].slice(0, 120);
-
-async function commit(action) {
-  const it = queue[i], d = it.draft;
-  if (action === "approve" && d) {
-    const ta = document.getElementById("reply");           // save any inline edit first
-    if (ta && ta.value !== d.body) {
-      await api(`/api/drafts/${d.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: ta.value }) });
-    }
-    await api(`/api/drafts/${d.id}/approve`, { method: "POST" });
-  }
-  else if (action === "approve") await api(`/api/items/${it.id}/dismiss`, { method: "POST" });  // calendar "Do it"
-  else if (action === "skip") await api(`/api/items/${it.id}/snooze`, { method: "POST" });      // back later
-}
-
-// Fly the card out in a direction, then commit + show the next one.
-function finish(action, dir) {
-  const card = $("cardslot").querySelector(".card");
-  if (card) {
-    card.style.transition = "transform .22s, opacity .22s";
-    card.style.transform = `translateX(${dir * 540}px) rotate(${dir * 15}deg)`;
-    card.style.opacity = "0";
-  }
-  setTimeout(async () => { await commit(action); i++; render(); }, 200);
-}
-
-function decide(action) {
-  finish(action, action === "approve" ? 1 : -1);
-}
-
-// Drag-to-decide: right = approve, left = skip (back later).
+// Swipe right = approve, swipe left = dismiss. Buttons still work too.
 function attachSwipe(card) {
+  const itemId = card.getAttribute("data-item");
+  const draftId = card.getAttribute("data-draft");
   let startX = 0, dx = 0, dragging = false;
   const T = 90;
   card.style.touchAction = "pan-y";
   card.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("button, textarea, input, .details")) return;
+    if (e.target.closest("button, textarea, input, .more")) return;
     dragging = true; startX = e.clientX; dx = 0;
     card.setPointerCapture(e.pointerId);
     card.style.transition = "none";
@@ -127,14 +73,15 @@ function attachSwipe(card) {
     if (!dragging) return;
     dx = e.clientX - startX;
     card.style.transform = `translateX(${dx}px) rotate(${dx / 30}deg)`;
-    card.style.borderColor = dx > 40 ? "var(--good)" : dx < -40 ? "var(--brass)" : "var(--line)";
+    card.style.borderColor = dx > 40 ? "var(--good)" : dx < -40 ? "var(--urgent)" : "";
     const h = card.querySelector(".hint");
-    if (h) h.textContent = dx > 40 ? "Approve ✓" : dx < -40 ? "Skip — back later ↩" : "← Skip · Approve →";
+    if (h) h.textContent = dx > 40 ? (draftId ? "Approve & send ✓" : "Clear ✓")
+      : dx < -40 ? "Dismiss ✕" : "← Dismiss · Approve →";
   });
   const end = () => {
     if (!dragging) return; dragging = false;
-    if (dx > T) finish("approve", 1);
-    else if (dx < -T) finish("skip", -1);
+    if (dx > T) swipeCommit(card, "approve");
+    else if (dx < -T) swipeCommit(card, "dismiss");
     else { card.style.transition = "transform .2s"; card.style.transform = ""; card.style.borderColor = ""; }
     dx = 0;
   };
@@ -142,47 +89,140 @@ function attachSwipe(card) {
   card.addEventListener("pointercancel", end);
 }
 
-async function approveAll() {
-  await api("/api/drafts/approve_all", { method: "POST" });
-  await load();
-  i = queue.length; render();
+function swipeCommit(card, action) {
+  const itemId = card.getAttribute("data-item");
+  const draftId = card.getAttribute("data-draft");
+  const dir = action === "approve" ? 1 : -1;
+  card.style.transition = "transform .2s, opacity .2s";
+  card.style.transform = `translateX(${dir * 560}px) rotate(${dir * 14}deg)`;
+  card.style.opacity = "0";
+  setTimeout(async () => {
+    if (action === "approve" && draftId) await api(`/api/drafts/${draftId}/approve`, { method: "POST" });
+    else await api(`/api/items/${itemId}/dismiss`, { method: "POST" });
+    refresh();
+  }, 200);
 }
 
-function renderMore() {
-  const s = state;
-  const oldest = s.followups.length ? Math.max(...s.followups.map((f) => f.age)) : 0;
-  const open = s.tasks.filter((t) => !t.done).length;
-  const today = s.today.map((e) => `${e.time} ${e.title.split(" ")[0]}`).slice(0, 4).join(" · ");
-  $("moreBody").innerHTML = `
-    <div class="row"><span>📌 From your people</span><span class="r">${s.vips.map((v) => v.name.split(" ")[0]).join(", ") || "—"}</span></div>
-    <div class="row"><span>⏳ Waiting on a reply</span><span class="r">${s.followups.length} threads${oldest ? ` (oldest ${oldest}d)` : ""}</span></div>
-    <div class="row"><span>📅 Today</span><span class="r">${today || "clear"}</span></div>
-    <div class="row"><span>✅ To-do</span><span class="r">${open} open</span></div>
-    <div class="row"><span>🗂 Handled for you</span><span class="r">${s.handled.length}</span></div>`;
+function toggleMsg(id, btn) {
+  const p = document.getElementById("m" + id);
+  const collapsed = p.classList.toggle("clamp");
+  btn.textContent = collapsed ? "Show full message" : "Show less";
+}
+
+function render(state) {
+  $("clock").textContent = state.date;
+  $("greet").textContent = state.greeting;
+  const t = state.thesis;
+  $("thesis").innerHTML =
+    `While you were away, <span class="num">${t.incoming}</span> things came in. ` +
+    `I handled <span class="num">${t.handled}</span>. <b>${t.needs_you} need you.</b>`;
+
+  let html = "";
+
+  html += label("Needs you", `${state.needs_you.length} items`);
+  html += state.needs_you.length
+    ? `<div class="stack">${state.needs_you.map(needsCard).join("")}</div>`
+    : `<div class="empty">You're all clear. Nothing needs you right now.</div>`;
+
+  if (state.vips.length) {
+    html += label("From your people", `${state.vips.length} VIPs`);
+    html += `<div class="people">` + state.vips.map((v) =>
+      `<div class="person"><div class="av">${esc(initials(v.name))}</div>
+       <div class="nm">${esc(v.name.split(" ")[0])}</div>
+       <div class="st">${esc(v.note || "")}</div></div>`).join("") + `</div>`;
+  }
+
+  if (state.followups.length) {
+    html += label("Waiting on a reply", `${state.followups.length} threads`);
+    html += `<div class="waiting">` + state.followups.map((f) =>
+      `<div class="wrow"><div class="body"><div class="p">${esc(f.name)}</div>
+       <div class="s">${esc(f.subject)}</div></div>
+       <span class="age ${f.age >= 5 ? "old" : ""}">${f.age}d</span>
+       <button class="nudge" onclick="nudge(${f.id}, this)">Nudge</button></div>`).join("") + `</div>`;
+  }
+
+  html += label("Today", `${state.today.length} events`);
+  html += state.today.length
+    ? `<div class="timeline">` + state.today.map((e) =>
+        `<div class="slot"><div class="t">${esc(e.time)}</div><div class="ev">${esc(e.title)}</div></div>`).join("") + `</div>`
+    : `<div class="empty">Nothing on the calendar today.</div>`;
+
+  html += label("To-do", `${state.tasks.filter((x) => !x.done).length} open`);
+  html += `<div class="todos">` + state.tasks.map((t) =>
+    `<div class="todo ${t.done ? "done" : ""}"><div class="box" onclick="toggleTask(${t.id})">✓</div>
+     <div class="txt">${esc(t.text)}${t.by === "donna" ? '<span class="by">Donna added</span>' : ""}</div></div>`).join("") + `</div>`;
+
+  if (state.handled.length) {
+    html += label("Handled for you", `${state.handled.length} items`);
+    html += `<details class="handled"><summary>I cleared these so you didn't have to — tap to see</summary>
+      <div class="body">${state.handled.map((h) => `<div>${esc(h.summary)}</div>`).join("")}</div></details>`;
+  }
+
+  $("sections").innerHTML = html;
+  document.querySelectorAll(".stack .card").forEach(attachSwipe);
+}
+
+const initials = (n) => n.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+// ── Actions ──
+async function approve(id) { await api(`/api/drafts/${id}/approve`, { method: "POST" }); refresh(); }
+async function dismiss(id, el) { el.closest(".card").classList.add("gone"); await api(`/api/items/${id}/dismiss`, { method: "POST" }); setTimeout(refresh, 250); }
+async function toggleTask(id) { await api(`/api/tasks/${id}/toggle`, { method: "POST" }); refresh(); }
+async function nudge(id, el) { el.textContent = "Drafted"; await api(`/api/followups/${id}/nudge`, { method: "POST" }); }
+function editDraft(id) {
+  const p = $("d" + id);
+  const ta = document.createElement("textarea");
+  ta.value = p.textContent;
+  p.replaceWith(ta);
+  ta.focus();
+  ta.onblur = () => api(`/api/drafts/${id}`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body: ta.value }),
+  });
 }
 
 $("send").onclick = sendCmd;
 $("cmd").addEventListener("keydown", (e) => { if (e.key === "Enter") sendCmd(); });
 async function sendCmd() {
-  const input = $("cmd"), text = input.value.trim();
+  const input = $("cmd");
+  const text = input.value.trim();
   if (!text) return;
-  input.value = ""; $("reply").textContent = "Donna is thinking…";
-  const res = await api("/api/command", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+  input.value = "";
+  $("reply").textContent = "Donna is thinking…";
+  const res = await api("/api/command", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
   $("reply").textContent = res.reply || "";
+  refresh();
 }
 
-// PWA: service worker + push
+async function refresh() { render(await api("/api/state")); }
+
+// ── PWA: service worker + push registration ──
 async function setupPush() {
   if (!("serviceWorker" in navigator)) return;
   const reg = await navigator.serviceWorker.register("/sw.js");
   const { key } = await api("/api/push/key");
   if (!key || Notification.permission === "denied") return;
-  if ((await Notification.requestPermission()) !== "granted") return;
-  const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(key) });
-  await api("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return;
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8Array(key),
+  });
+  await api("/api/push/subscribe", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sub),
+  });
 }
-const b64 = (s) => { const p = "=".repeat((4 - (s.length % 4)) % 4); const r = atob((s + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
+function urlB64ToUint8Array(base64) {
+  const pad = "=".repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+}
 
-window.decide = decide;
-load();
+refresh();
+setInterval(refresh, 60000);
 setupPush();
