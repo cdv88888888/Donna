@@ -52,7 +52,7 @@ function needsCard(it) {
     <h3>${esc(it.subject || "(no subject)")}</h3>
     ${incoming}
     ${draft}
-    <div class="hint">← Dismiss · Approve →</div>
+    <div class="hint">← Later · Approve →</div>
   </div>`;
 }
 
@@ -76,12 +76,12 @@ function attachSwipe(card) {
     card.style.borderColor = dx > 40 ? "var(--good)" : dx < -40 ? "var(--urgent)" : "";
     const h = card.querySelector(".hint");
     if (h) h.textContent = dx > 40 ? (draftId ? "Approve & send ✓" : "Clear ✓")
-      : dx < -40 ? "Dismiss ✕" : "← Dismiss · Approve →";
+      : dx < -40 ? "Later ↩" : "← Later · Approve →";
   });
   const end = () => {
     if (!dragging) return; dragging = false;
     if (dx > T) swipeCommit(card, "approve");
-    else if (dx < -T) swipeCommit(card, "dismiss");
+    else if (dx < -T) swipeCommit(card, "later");
     else { card.style.transition = "transform .2s"; card.style.transform = ""; card.style.borderColor = ""; }
     dx = 0;
   };
@@ -98,6 +98,7 @@ function swipeCommit(card, action) {
   card.style.opacity = "0";
   setTimeout(async () => {
     if (action === "approve" && draftId) await api(`/api/drafts/${draftId}/approve`, { method: "POST" });
+    else if (action === "later") await api(`/api/items/${itemId}/snooze`, { method: "POST" });  // comes back later
     else await api(`/api/items/${itemId}/dismiss`, { method: "POST" });
     refresh();
   }, 200);
