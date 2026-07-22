@@ -202,8 +202,8 @@
         card.style.borderColor = "";
         stack.appendChild(card);
         requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          // slower settle with a soft overshoot (spring)
-          card.style.transition = "transform .6s cubic-bezier(.34,1.56,.64,1), opacity .5s ease";
+          // slow, springy settle with a bit more overshoot
+          card.style.transition = "transform .9s cubic-bezier(.34,1.7,.5,1), opacity .55s ease";
           card.style.transform = "";
           card.style.opacity = "1";
         }));
