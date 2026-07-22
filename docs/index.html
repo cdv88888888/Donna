@@ -25,7 +25,7 @@
   .label .rule{flex:1;height:1px;background:var(--line);}
   .label .count{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
   .stack{display:flex;flex-direction:column;gap:14px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
   .card:active{cursor:grabbing;}
   .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass);}
   .card.urgent::before,.card.high::before{background:var(--urgent);}
@@ -234,25 +234,38 @@
   function act(btn, action){ actOnCard(btn.closest(".card"), action); }
 
   function attachSwipe(card){
-    let startX=0, dx=0, dragging=false; const T=110;
-    card.style.touchAction="pan-y";
+    let startX=0, startY=0, dx=0, active=false, decided=false, horiz=false; const T=110;
     card.addEventListener("pointerdown",e=>{
       if(e.target.closest("button, textarea, .more")) return;
-      dragging=true; startX=e.clientX; dx=0; card.setPointerCapture(e.pointerId); card.style.transition="none";
+      startX=e.clientX; startY=e.clientY; dx=0; active=true; decided=false; horiz=false;
+      card.style.transition="none";
     });
     card.addEventListener("pointermove",e=>{
-      if(!dragging) return; dx=e.clientX-startX;
-      card.style.transform=`translateX(${dx}px) rotate(${dx/30}deg)`;
+      if(!active) return;
+      const mx=e.clientX-startX, my=e.clientY-startY;
+      if(!decided){
+        if(Math.abs(mx)<8 && Math.abs(my)<8) return;   // wait for a real intent
+        decided=true;
+        horiz=Math.abs(mx)>Math.abs(my);
+        if(horiz){ try{ card.setPointerCapture(e.pointerId); }catch(_){} }
+        else { active=false; return; }                 // vertical -> let the page scroll
+      }
+      if(!horiz) return;
+      if(e.cancelable) e.preventDefault();              // stop the page from scrolling mid-swipe
+      dx=mx;
+      card.style.transform=`translate3d(${dx}px,0,0) rotate(${dx/30}deg)`;
       card.style.borderColor = dx>40?"var(--good)":dx<-40?"var(--brass)":"";
       const h=card.querySelector(".hint");
       if(h) h.textContent = dx>40?"Approve & send ✓":dx<-40?"Later ↩":"← Later · Approve →";
-    });
-    const end=()=>{ if(!dragging) return; dragging=false;
+    }, {passive:false});
+    const end=()=>{ if(!active) return; active=false;
       if(dx>T) actOnCard(card,"approve"); else if(dx<-T) actOnCard(card,"later");
-      else { card.style.transition="transform .35s cubic-bezier(.25,.8,.3,1)"; card.style.transform=""; card.style.borderColor=""; }
+      else if(dx){ card.style.transition="transform .35s cubic-bezier(.25,.8,.3,1)"; card.style.transform=""; card.style.borderColor=""; }
       dx=0;
     };
-    card.addEventListener("pointerup",end); card.addEventListener("pointercancel",end);
+    card.addEventListener("pointerup",end);
+    card.addEventListener("pointercancel",end);
+    card.addEventListener("lostpointercapture",end);
   }
   document.querySelectorAll("#stack .card").forEach(attachSwipe);
 </script>
