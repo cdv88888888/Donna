@@ -190,26 +190,27 @@
   }
   function actOnCard(card, action){
     const dir = action === "approve" ? 1 : -1;
-    card.style.transition = "transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease";
-    card.style.transform = `translateX(${dir*560}px) rotate(${dir*12}deg)`;
+    card.style.transition = "transform .3s cubic-bezier(.22,.61,.36,1), opacity .3s ease";
+    card.style.transform = `translateX(${dir*580}px) rotate(${dir*12}deg)`;
     card.style.opacity = "0";
     setTimeout(()=>{
-      if(action === "later"){                                  // snooze -> ease it back in at the bottom
+      if(action === "later"){                                  // snooze -> spring it back in at the bottom
         const stack = document.getElementById("stack");
         card.style.transition = "none";
-        card.style.transform = "translateX(-36px)";
+        card.style.transform = "translateX(-52px) scale(.94)";
         card.style.opacity = "0";
         card.style.borderColor = "";
         stack.appendChild(card);
         requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          card.style.transition = "transform .3s ease, opacity .3s ease";
+          // slower settle with a soft overshoot (spring)
+          card.style.transition = "transform .6s cubic-bezier(.34,1.56,.64,1), opacity .5s ease";
           card.style.transform = "";
           card.style.opacity = "1";
         }));
       } else {                                                 // approve / dismiss -> clear
         card.remove(); updateCount();
       }
-    }, 260);
+    }, 300);
   }
   function act(btn, action){ actOnCard(btn.closest(".card"), action); }
 
