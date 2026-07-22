@@ -190,17 +190,26 @@
   }
   function actOnCard(card, action){
     const dir = action === "approve" ? 1 : -1;
-    card.style.transition = "transform .2s, opacity .2s";
-    card.style.transform = `translateX(${dir*560}px) rotate(${dir*14}deg)`;
+    card.style.transition = "transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease";
+    card.style.transform = `translateX(${dir*560}px) rotate(${dir*12}deg)`;
     card.style.opacity = "0";
     setTimeout(()=>{
-      if(action === "later"){                                  // snooze -> back of the queue
-        card.style.transition = "none"; card.style.transform = ""; card.style.opacity = ""; card.style.borderColor = "";
-        document.getElementById("stack").appendChild(card);
+      if(action === "later"){                                  // snooze -> ease it back in at the bottom
+        const stack = document.getElementById("stack");
+        card.style.transition = "none";
+        card.style.transform = "translateX(-36px)";
+        card.style.opacity = "0";
+        card.style.borderColor = "";
+        stack.appendChild(card);
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          card.style.transition = "transform .3s ease, opacity .3s ease";
+          card.style.transform = "";
+          card.style.opacity = "1";
+        }));
       } else {                                                 // approve / dismiss -> clear
         card.remove(); updateCount();
       }
-    }, 200);
+    }, 260);
   }
   function act(btn, action){ actOnCard(btn.closest(".card"), action); }
 

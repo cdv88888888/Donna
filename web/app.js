@@ -93,15 +93,15 @@ function swipeCommit(card, action) {
   const itemId = card.getAttribute("data-item");
   const draftId = card.getAttribute("data-draft");
   const dir = action === "approve" ? 1 : -1;
-  card.style.transition = "transform .2s, opacity .2s";
-  card.style.transform = `translateX(${dir * 560}px) rotate(${dir * 14}deg)`;
+  card.style.transition = "transform .26s cubic-bezier(.22,.61,.36,1), opacity .26s ease";
+  card.style.transform = `translateX(${dir * 560}px) rotate(${dir * 12}deg)`;
   card.style.opacity = "0";
   setTimeout(async () => {
     if (action === "approve" && draftId) await api(`/api/drafts/${draftId}/approve`, { method: "POST" });
     else if (action === "later") await api(`/api/items/${itemId}/snooze`, { method: "POST" });  // comes back later
     else await api(`/api/items/${itemId}/dismiss`, { method: "POST" });
     refresh();
-  }, 200);
+  }, 260);
 }
 
 function toggleMsg(id, btn) {
