@@ -69,29 +69,69 @@ function render() {
       ${d ? `<button class="btn ghost" onclick="decide('edit')">Save edit</button>` : ""}
       <button class="btn ghost" onclick="decide('skip')">Skip</button>
     </div>
+    <div class="hint">← Skip · Approve →</div>
   </div>`;
+  attachSwipe($("cardslot").querySelector(".card"));
 }
 
 const firstSentence = (t) => (t || "").split(/(?<=[.!?])\s/)[0].slice(0, 120);
 
-async function decide(action) {
-  const it = queue[i];
-  const d = it.draft;
+async function commit(action) {
+  const it = queue[i], d = it.draft;
   if (action === "approve" && d) await api(`/api/drafts/${d.id}/approve`, { method: "POST" });
   else if (action === "approve") await api(`/api/items/${it.id}/dismiss`, { method: "POST" });
-  else if (action === "skip") await api(`/api/items/${it.id}/dismiss`, { method: "POST" });
+  else if (action === "skip") await api(`/api/items/${it.id}/snooze`, { method: "POST" });  // back later
   else if (action === "edit" && d) {
     const body = $("edit").value;
     await api(`/api/drafts/${d.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }) });
     await api(`/api/drafts/${d.id}/approve`, { method: "POST" });
   }
-  advance();
 }
 
-function advance() {
+// Fly the card out in a direction, then commit + show the next one.
+function finish(action, dir) {
   const card = $("cardslot").querySelector(".card");
-  if (card) { card.style.opacity = "0"; card.style.transform = "translateX(-24px)"; }
-  setTimeout(() => { i++; render(); }, 170);
+  if (card) {
+    card.style.transition = "transform .22s, opacity .22s";
+    card.style.transform = `translateX(${dir * 540}px) rotate(${dir * 15}deg)`;
+    card.style.opacity = "0";
+  }
+  setTimeout(async () => { await commit(action); i++; render(); }, 200);
+}
+
+function decide(action) {
+  if (action === "edit") { finish("edit", 1); }
+  else finish(action, action === "approve" ? 1 : -1);
+}
+
+// Drag-to-decide: right = approve, left = skip (back later).
+function attachSwipe(card) {
+  let startX = 0, dx = 0, dragging = false;
+  const T = 90;
+  card.style.touchAction = "pan-y";
+  card.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button, textarea, input, .details")) return;
+    dragging = true; startX = e.clientX; dx = 0;
+    card.setPointerCapture(e.pointerId);
+    card.style.transition = "none";
+  });
+  card.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    dx = e.clientX - startX;
+    card.style.transform = `translateX(${dx}px) rotate(${dx / 30}deg)`;
+    card.style.borderColor = dx > 40 ? "var(--good)" : dx < -40 ? "var(--brass)" : "var(--line)";
+    const h = card.querySelector(".hint");
+    if (h) h.textContent = dx > 40 ? "Approve ✓" : dx < -40 ? "Skip — back later ↩" : "← Skip · Approve →";
+  });
+  const end = () => {
+    if (!dragging) return; dragging = false;
+    if (dx > T) finish("approve", 1);
+    else if (dx < -T) finish("skip", -1);
+    else { card.style.transition = "transform .2s"; card.style.transform = ""; card.style.borderColor = ""; }
+    dx = 0;
+  };
+  card.addEventListener("pointerup", end);
+  card.addEventListener("pointercancel", end);
 }
 
 async function approveAll() {

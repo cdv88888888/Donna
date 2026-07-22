@@ -31,6 +31,7 @@ from .db import (
     FollowUp,
     Item,
     ItemStatus,
+    Priority,
     PushSub,
     Task,
     init_db,
@@ -54,12 +55,21 @@ def _startup() -> None:
 @app.get("/api/state")
 def state() -> dict:
     with session_scope() as s:
-        items = (
+        # Open items, plus snoozed ones whose "later" has arrived.
+        now = utcnow()
+        candidates = (
             s.query(Item)
-            .filter(Item.status == ItemStatus.open)
-            .order_by(Item.priority, Item.created_at.desc())
+            .filter(
+                (Item.status == ItemStatus.open)
+                | ((Item.status == ItemStatus.snoozed) & (Item.snooze_until <= now))
+            )
             .all()
         )
+        # Sort by real severity (urgent first), then newest — enum sorts
+        # alphabetically in SQL, which would bury urgent, so we rank here.
+        rank = {Priority.urgent: 0, Priority.high: 1, Priority.normal: 2, Priority.low: 3}
+        candidates.sort(key=lambda it: (rank.get(it.priority, 9), -it.id))
+        items = candidates
         needs_you = []
         for it in items:
             draft = (
@@ -172,10 +182,23 @@ async def edit_draft(draft_id: int, request: Request) -> dict:
 
 @app.post("/api/items/{item_id}/dismiss")
 def dismiss_item(item_id: int) -> dict:
+    """Gone for good."""
     with session_scope() as s:
         item = s.get(Item, item_id)
         if item:
             item.status = ItemStatus.dismissed
+    return {"ok": True}
+
+
+@app.post("/api/items/{item_id}/snooze")
+def snooze_item(item_id: int) -> dict:
+    """Skip = bring it back later (default: in 4 hours)."""
+    import datetime as _dt
+    with session_scope() as s:
+        item = s.get(Item, item_id)
+        if item:
+            item.status = ItemStatus.snoozed
+            item.snooze_until = utcnow() + _dt.timedelta(hours=4)
     return {"ok": True}
 
 

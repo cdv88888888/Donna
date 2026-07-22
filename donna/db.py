@@ -111,6 +111,7 @@ class Item(Base):
     priority: Mapped[Priority] = mapped_column(Enum(Priority), default=Priority.normal)
     reason: Mapped[Optional[str]] = mapped_column(String(500))  # why Donna flagged it
     status: Mapped[ItemStatus] = mapped_column(Enum(ItemStatus), default=ItemStatus.open)
+    snooze_until: Mapped[Optional[dt.datetime]] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     drafts: Mapped[list["Draft"]] = relationship(back_populates="item", cascade="all, delete-orphan")
