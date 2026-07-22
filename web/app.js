@@ -48,10 +48,14 @@ function render() {
   const d = it.draft;
   const pri = ["urgent", "high"].includes(it.priority);
   const yes = it.source === "calendar" ? "Do it" : "Approve & send";
-  const act = d ? d.summary || firstSentence(d.body) : (it.reason || "Review this");
-  const full = (it.body ? `<span class="lbl">Full message</span>${esc(it.body)}` : "") +
-    (d ? `<span class="lbl">Donna's exact reply — edit if you like</span>
-          <textarea id="edit">${esc(d.body)}</textarea>` : "");
+  // Show Donna's actual reply on the card (editable inline), not just a summary.
+  const replyBlock = d
+    ? `<div class="reply"><span class="tag">Donna's reply — tweak it if you like</span>
+         <textarea id="reply">${esc(d.body)}</textarea></div>`
+    : `<div class="line act"><span class="k">Donna will</span><span class="v">${esc(it.reason || "Review this")}</span></div>`;
+  const orig = it.body
+    ? `<button class="details" onclick="this.nextElementSibling.classList.toggle('show')">See the original message</button><div class="full">${esc(it.body)}</div>`
+    : "";
 
   $("cardslot").innerHTML = `<div class="card ${pri ? "urgent" : ""}">
     <div class="meta">
@@ -62,30 +66,35 @@ function render() {
     </div>
     <h2 class="subject">${esc(it.subject || "(no subject)")}</h2>
     <div class="line"><span class="k">What it's about</span><span class="v">${esc(it.snippet || "")}</span></div>
-    <div class="line act"><span class="k">Donna will</span><span class="v">${esc(act)}</span></div>
-    ${full ? `<button class="details" onclick="this.nextElementSibling.classList.toggle('show')">See full message &amp; exact wording</button><div class="full">${full}</div>` : ""}
+    ${replyBlock}
+    ${orig}
     <div class="actions">
       <button class="btn primary" onclick="decide('approve')">${yes}</button>
-      ${d ? `<button class="btn ghost" onclick="decide('edit')">Save edit</button>` : ""}
       <button class="btn ghost" onclick="decide('skip')">Skip</button>
     </div>
     <div class="hint">← Skip · Approve →</div>
   </div>`;
   attachSwipe($("cardslot").querySelector(".card"));
+  const ta = document.getElementById("reply");
+  if (ta) {  // grow to fit the whole reply, and on edit
+    const grow = () => { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; };
+    grow(); ta.addEventListener("input", grow);
+  }
 }
 
 const firstSentence = (t) => (t || "").split(/(?<=[.!?])\s/)[0].slice(0, 120);
 
 async function commit(action) {
   const it = queue[i], d = it.draft;
-  if (action === "approve" && d) await api(`/api/drafts/${d.id}/approve`, { method: "POST" });
-  else if (action === "approve") await api(`/api/items/${it.id}/dismiss`, { method: "POST" });
-  else if (action === "skip") await api(`/api/items/${it.id}/snooze`, { method: "POST" });  // back later
-  else if (action === "edit" && d) {
-    const body = $("edit").value;
-    await api(`/api/drafts/${d.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }) });
+  if (action === "approve" && d) {
+    const ta = document.getElementById("reply");           // save any inline edit first
+    if (ta && ta.value !== d.body) {
+      await api(`/api/drafts/${d.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: ta.value }) });
+    }
     await api(`/api/drafts/${d.id}/approve`, { method: "POST" });
   }
+  else if (action === "approve") await api(`/api/items/${it.id}/dismiss`, { method: "POST" });  // calendar "Do it"
+  else if (action === "skip") await api(`/api/items/${it.id}/snooze`, { method: "POST" });      // back later
 }
 
 // Fly the card out in a direction, then commit + show the next one.
@@ -100,8 +109,7 @@ function finish(action, dir) {
 }
 
 function decide(action) {
-  if (action === "edit") { finish("edit", 1); }
-  else finish(action, action === "approve" ? 1 : -1);
+  finish(action, action === "approve" ? 1 : -1);
 }
 
 // Drag-to-decide: right = approve, left = skip (back later).
