@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Donna — Today</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;--shadow:0 1px 2px rgba(30,43,43,.05),0 8px 24px rgba(30,43,43,.06);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+  @media (prefers-color-scheme:dark){:root{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);}}
+  :root[data-theme="light"]{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;}
+  :root[data-theme="dark"]{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:680px;margin:0 auto;padding:40px 22px 60px;}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:var(--paper);font-family:var(--serif);font-weight:700;font-size:17px;}
+  .brand .name{font-family:var(--serif);font-size:19px;font-weight:600;}
+  .theme-btn{border:1px solid var(--line);background:transparent;color:var(--ink-faint);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);}
+  .greet{font-family:var(--serif);font-size:34px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance;margin:0 0 14px;}
+  .thesis{font-family:var(--serif);font-size:19px;color:var(--ink-soft);max-width:34ch;margin:0;}
+  .thesis b{color:var(--ink);font-weight:600;} .thesis .num{color:var(--brass-deep);font-weight:700;font-variant-numeric:tabular-nums;}
+  .label{display:flex;align-items:center;gap:12px;margin:44px 0 16px;}
+  .label span{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
+  .label .rule{flex:1;height:1px;background:var(--line);}
+  .label .count{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+  .stack{display:flex;flex-direction:column;gap:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;}
+  .card:active{cursor:grabbing;}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass);}
+  .card.urgent::before,.card.high::before{background:var(--urgent);}
+  .card .meta{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap;}
+  .chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;}
+  .chip.src{background:color-mix(in srgb,var(--brass) 15%,transparent);color:var(--brass-deep);}
+  .chip.pri{background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
+  .card .who{font-weight:600;font-size:14.5px;} .card .when{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);margin-left:auto;}
+  .card h3{margin:2px 0 10px;font-size:16px;font-weight:600;line-height:1.3;}
+  .incoming{border-left:2px solid var(--line);padding:1px 0 1px 12px;margin:0 0 13px;}
+  .incoming .tag{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;display:block;margin-bottom:5px;}
+  .incoming .msg{font-size:13.5px;color:var(--ink-soft);white-space:pre-wrap;margin:0;line-height:1.45;}
+  .incoming .msg.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .incoming .more{background:none;border:none;color:var(--brass-deep);font-size:12px;font-weight:600;cursor:pointer;padding:5px 0 0;font-family:var(--sans);}
+  .donna{background:color-mix(in srgb,var(--brass) 8%,transparent);border:1px solid color-mix(in srgb,var(--brass) 22%,transparent);border-radius:10px;padding:11px 13px;margin-bottom:13px;}
+  .donna .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
+  .donna p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.45;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .btn.primary{background:var(--ink);color:var(--paper);} .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+  .hint{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:12px;letter-spacing:.03em;user-select:none;}
+  .people{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;}
+  .person{flex:none;width:96px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px 10px;text-align:center;}
+  .person .av{width:38px;height:38px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;font-family:var(--serif);font-size:16px;font-weight:600;color:var(--paper);background:var(--brass);}
+  .person .nm{font-size:12.5px;font-weight:600;} .person .st{font-size:10.5px;color:var(--ink-faint);margin-top:3px;}
+  .waiting,.timeline,.todos{display:flex;flex-direction:column;}
+  .wrow{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px dashed var(--line);}
+  .wrow .body{flex:1;min-width:0;} .wrow .body .p{font-size:14px;font-weight:600;} .wrow .body .s{font-size:12.5px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .age{font-family:var(--mono);font-size:11.5px;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--brass) 14%,transparent);color:var(--brass-deep);}
+  .age.old{background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
+  .nudge{border:1px solid var(--line);background:transparent;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .slot{display:flex;gap:16px;padding:11px 4px;border-bottom:1px dashed var(--line);align-items:baseline;}
+  .slot .t{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);width:64px;flex:none;}
+  .slot .ev small{color:var(--good);font-weight:600;}
+  .todo{display:flex;align-items:flex-start;gap:12px;padding:11px 4px;border-bottom:1px dashed var(--line);}
+  .todo .box{width:19px;height:19px;border:1.5px solid var(--ink-faint);border-radius:6px;flex:none;margin-top:1px;cursor:pointer;display:grid;place-items:center;color:transparent;font-size:12px;}
+  .todo.done .box{background:var(--good);border-color:var(--good);color:var(--paper);} .todo.done .txt{color:var(--ink-faint);text-decoration:line-through;}
+  .todo .txt{font-size:14px;} .todo .by{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;margin-left:8px;}
+  .handled{border:1px solid var(--line);border-radius:12px;}
+  .handled summary{list-style:none;cursor:pointer;padding:14px 16px;font-size:13.5px;color:var(--ink-soft);}
+  .handled summary::-webkit-details-marker{display:none;}
+  .handled .body{padding:0 16px 14px 30px;display:flex;flex-direction:column;gap:9px;}
+  .handled .body div{font-size:13px;color:var(--ink-faint);} .handled .body div::before{content:"✓ ";color:var(--good);font-weight:700;}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+  @media (max-width:520px){.greet{font-size:28px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="mark">D</div><div class="name">Donna</div></div>
+    <button class="theme-btn" id="theme">◑ Theme</button>
+  </div>
+  <h1 class="greet">Good morning.</h1>
+  <p class="thesis">While you were away, <span class="num">127</span> things came in. I handled <span class="num">9</span>. <b><span id="needNum">4</span> need you.</b></p>
+
+  <div class="label"><span>Needs you</span><div class="rule"></div><div class="count" id="needCount">4 items</div></div>
+  <div class="stack" id="stack">
+
+    <div class="card urgent" data-id="ana">
+      <div class="meta"><span class="chip pri">● urgent</span><span class="chip src">✉ gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
+      <h3>Invoice #4471 is 12 days late</h3>
+      <div class="incoming"><span class="tag">What you're replying to · Ana</span>
+        <p class="msg clamp" id="m-ana">Apologies for the delay. Invoice #4471 (due July 10) is stuck in our approval queue while our finance lead is on leave. I don't have a firm date. Will this hold up the next shipment?</p>
+        <button class="more" onclick="toggleMsg('m-ana',this)">Show full message</button></div>
+      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Hi Ana — just flagging invoice #4471 (due July 10) is still open. Could you confirm the payment date? Happy to resend the invoice if helpful. Thanks!</p></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="hint">← Later · Approve →</div>
+    </div>
+
+    <div class="card high" data-id="marco">
+      <div class="meta"><span class="chip pri">● high</span><span class="chip src">✉ gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
+      <h3>Re: Q3 supplier contract — revised terms attached</h3>
+      <div class="incoming"><span class="tag">What you're replying to · Marco</span>
+        <p class="msg clamp" id="m-marco">Hi, Thanks for the call earlier. As agreed I've attached the revised Q3 contract. Changes: unit price ₱48.50 (from ₱51.00); July delivery window kept with a 3-day grace period. If these look good, can you sign and return so we can lock the July slot?</p>
+        <button class="more" onclick="toggleMsg('m-marco',this)">Show full message</button></div>
+      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Hi Marco — the revised terms look good on our end. Could you send the signed PDF today so we can lock the July delivery slot? Appreciate the quick turnaround.</p></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="hint">← Later · Approve →</div>
+    </div>
+
+    <div class="card high" data-id="cal">
+      <div class="meta"><span class="chip pri">● high</span><span class="chip src">◷ calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
+      <h3>3pm vendor call overlaps the board sync</h3>
+      <div class="incoming"><span class="tag">The conflict</span>
+        <p class="msg">Thursday 3:00pm: Vendor call AND Board sync overlap. 4:30pm is open for both parties.</p></div>
+      <div class="donna"><span class="tag">Donna suggests</span><p>Move the vendor call to 4:30 PM — both sides are free. I'll send the reschedule note.</p></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
+      <div class="hint">← Later · Approve →</div>
+    </div>
+
+    <div class="card" data-id="tita">
+      <div class="meta"><span class="chip src">✈ telegram</span><span class="who">Tita Cora</span><span class="when">8:04 PM</span></div>
+      <h3>Sunday family lunch</h3>
+      <div class="incoming"><span class="tag">What you're replying to · Tita Cora</span>
+        <p class="msg clamp" id="m-tita">Anak, pupunta ka ba sa Linggo? Handaan ni Lolo, 12nn sa bahay. Pakisagot na lang para makabili ako ng ulam. 🙏</p>
+        <button class="more" onclick="toggleMsg('m-tita',this)">Show full message</button></div>
+      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Opo Tita, andyan ako by 1pm. Ako na bahala sa dessert 🙏</p></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="hint">← Later · Approve →</div>
+    </div>
+
+  </div>
+
+  <div class="label"><span>From your people</span><div class="rule"></div><div class="count">3 VIPs</div></div>
+  <div class="people">
+    <div class="person"><div class="av" style="background:var(--urgent)">MG</div><div class="nm">Marco</div><div class="st">Waiting on you</div></div>
+    <div class="person"><div class="av">TC</div><div class="nm">Tita Cora</div><div class="st">New message</div></div>
+    <div class="person"><div class="av" style="background:var(--good)">EN</div><div class="nm">Elena</div><div class="st">All caught up</div></div>
+  </div>
+
+  <div class="label"><span>Waiting on a reply</span><div class="rule"></div><div class="count">3 threads</div></div>
+  <div class="waiting">
+    <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
+    <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
+    <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
+  </div>
+
+  <div class="label"><span>Today</span><div class="rule"></div><div class="count">4 events</div></div>
+  <div class="timeline">
+    <div class="slot"><div class="t">9:00 AM</div><div class="ev">Team standup</div></div>
+    <div class="slot"><div class="t">11:30</div><div class="ev">Dentist — Dr. Reyes</div></div>
+    <div class="slot"><div class="t">4:30 PM</div><div class="ev">Vendor call &nbsp;<small>· moved by Donna</small></div></div>
+    <div class="slot"><div class="t">6:00 PM</div><div class="ev">Gym</div></div>
+  </div>
+
+  <div class="label"><span>To-do</span><div class="rule"></div><div class="count">2 open</div></div>
+  <div class="todos">
+    <div class="todo"><div class="box" onclick="this.parentElement.classList.toggle('done')">✓</div><div class="txt">Review and sign the ABC Trading contract <span class="by">Donna added</span></div></div>
+    <div class="todo"><div class="box" onclick="this.parentElement.classList.toggle('done')">✓</div><div class="txt">Call the accountant about the Q2 filing</div></div>
+    <div class="todo done"><div class="box" onclick="this.parentElement.classList.toggle('done')">✓</div><div class="txt">Approve the payroll run</div></div>
+  </div>
+
+  <div class="label"><span>Handled for you</span><div class="rule"></div><div class="count">9 items</div></div>
+  <details class="handled"><summary>I cleared these so you didn't have to — tap to see</summary>
+    <div class="body"><div>Archived 6 low-priority emails (receipts, newsletters)</div><div>Filed 2 newsletters to “Read later”</div><div>Confirmed your 11:30 dentist appointment</div></div>
+  </details>
+</div>
+
+<script>
+  document.getElementById("theme").onclick = () => {
+    const root = document.documentElement, dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = root.getAttribute("data-theme") || (dark ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  };
+  function toggleMsg(id, btn){
+    const p = document.getElementById(id);
+    const collapsed = p.classList.toggle("clamp");
+    btn.textContent = collapsed ? "Show full message" : "Show less";
+  }
+  function edit(btn){
+    const p = btn.closest(".card").querySelector(".donna p");
+    const ta = document.createElement("textarea");
+    ta.value = p.textContent;
+    ta.style.cssText = "width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:14.5px;padding:8px;min-height:80px;";
+    p.replaceWith(ta); ta.focus();
+  }
+  function updateCount(){
+    const n = document.querySelectorAll("#stack .card").length;
+    document.getElementById("needCount").textContent = n + " items";
+    document.getElementById("needNum").textContent = n;
+  }
+  function actOnCard(card, action){
+    const dir = action === "approve" ? 1 : -1;
+    card.style.transition = "transform .2s, opacity .2s";
+    card.style.transform = `translateX(${dir*560}px) rotate(${dir*14}deg)`;
+    card.style.opacity = "0";
+    setTimeout(()=>{
+      if(action === "later"){                                  // snooze -> back of the queue
+        card.style.transition = "none"; card.style.transform = ""; card.style.opacity = ""; card.style.borderColor = "";
+        document.getElementById("stack").appendChild(card);
+      } else {                                                 // approve / dismiss -> clear
+        card.remove(); updateCount();
+      }
+    }, 200);
+  }
+  function act(btn, action){ actOnCard(btn.closest(".card"), action); }
+
+  function attachSwipe(card){
+    let startX=0, dx=0, dragging=false; const T=90;
+    card.style.touchAction="pan-y";
+    card.addEventListener("pointerdown",e=>{
+      if(e.target.closest("button, textarea, .more")) return;
+      dragging=true; startX=e.clientX; dx=0; card.setPointerCapture(e.pointerId); card.style.transition="none";
+    });
+    card.addEventListener("pointermove",e=>{
+      if(!dragging) return; dx=e.clientX-startX;
+      card.style.transform=`translateX(${dx}px) rotate(${dx/30}deg)`;
+      card.style.borderColor = dx>40?"var(--good)":dx<-40?"var(--brass)":"";
+      const h=card.querySelector(".hint");
+      if(h) h.textContent = dx>40?"Approve & send ✓":dx<-40?"Later ↩":"← Later · Approve →";
+    });
+    const end=()=>{ if(!dragging) return; dragging=false;
+      if(dx>T) actOnCard(card,"approve"); else if(dx<-T) actOnCard(card,"later");
+      else { card.style.transition="transform .2s"; card.style.transform=""; card.style.borderColor=""; }
+      dx=0;
+    };
+    card.addEventListener("pointerup",end); card.addEventListener("pointercancel",end);
+  }
+  document.querySelectorAll("#stack .card").forEach(attachSwipe);
+</script>
+</body>
+</html>
