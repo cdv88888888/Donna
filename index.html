@@ -190,32 +190,51 @@
   }
   function actOnCard(card, action){
     const dir = action === "approve" ? 1 : -1;
-    card.style.transition = "transform .3s cubic-bezier(.22,.61,.36,1), opacity .3s ease";
-    card.style.transform = `translateX(${dir*580}px) rotate(${dir*12}deg)`;
+    // 1) glide the card off-screen (gentle, slow ease-out)
+    card.style.transition = "transform .42s cubic-bezier(.25,.8,.3,1), opacity .38s ease";
+    card.style.transform = `translateX(${dir*620}px) rotate(${dir*9}deg)`;
     card.style.opacity = "0";
     setTimeout(()=>{
-      if(action === "later"){                                  // snooze -> spring it back in at the bottom
-        const stack = document.getElementById("stack");
+      const stack = document.getElementById("stack");
+      // 2) remember where the other cards are, so we can glide them (FLIP)
+      const others = [...stack.children].filter(c => c !== card);
+      const firstTop = new Map(others.map(c => [c, c.getBoundingClientRect().top]));
+
+      if(action === "later"){ stack.appendChild(card); }       // move to the back
+      else { card.remove(); updateCount(); }                   // approve / dismiss -> clear
+
+      // 3) glide the remaining cards from their old spots to their new ones
+      others.forEach(c=>{
+        const dy = firstTop.get(c) - c.getBoundingClientRect().top;
+        if(dy){ c.style.transition = "none"; c.style.transform = `translateY(${dy}px)`; }
+      });
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        others.forEach(c=>{
+          if(c.style.transform){
+            c.style.transition = "transform .55s cubic-bezier(.25,.8,.3,1)";
+            c.style.transform = "";
+          }
+        });
+      }));
+
+      // 4) for "later", spring the moved card up into place at the bottom
+      if(action === "later"){
         card.style.transition = "none";
-        card.style.transform = "translateX(-52px) scale(.94)";
+        card.style.transform = "translateY(28px) scale(.95)";
         card.style.opacity = "0";
         card.style.borderColor = "";
-        stack.appendChild(card);
         requestAnimationFrame(()=>requestAnimationFrame(()=>{
-          // slow, springy settle with a bit more overshoot
-          card.style.transition = "transform .9s cubic-bezier(.34,1.7,.5,1), opacity .55s ease";
+          card.style.transition = "transform .85s cubic-bezier(.34,1.55,.5,1), opacity .5s ease";
           card.style.transform = "";
           card.style.opacity = "1";
         }));
-      } else {                                                 // approve / dismiss -> clear
-        card.remove(); updateCount();
       }
-    }, 300);
+    }, 420);
   }
   function act(btn, action){ actOnCard(btn.closest(".card"), action); }
 
   function attachSwipe(card){
-    let startX=0, dx=0, dragging=false; const T=90;
+    let startX=0, dx=0, dragging=false; const T=110;
     card.style.touchAction="pan-y";
     card.addEventListener("pointerdown",e=>{
       if(e.target.closest("button, textarea, .more")) return;
@@ -230,7 +249,7 @@
     });
     const end=()=>{ if(!dragging) return; dragging=false;
       if(dx>T) actOnCard(card,"approve"); else if(dx<-T) actOnCard(card,"later");
-      else { card.style.transition="transform .2s"; card.style.transform=""; card.style.borderColor=""; }
+      else { card.style.transition="transform .35s cubic-bezier(.25,.8,.3,1)"; card.style.transform=""; card.style.borderColor=""; }
       dx=0;
     };
     card.addEventListener("pointerup",end); card.addEventListener("pointercancel",end);
