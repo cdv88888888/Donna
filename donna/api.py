@@ -77,7 +77,8 @@ def state() -> dict:
                 "priority": it.priority.value,
                 "reason": it.reason,
                 "when": _ago(it.created_at),
-                "draft": ({"id": draft.id, "body": draft.body} if draft else None),
+                "draft": ({"id": draft.id, "body": draft.body,
+                           "summary": draft.summary} if draft else None),
             })
 
         vips = [
@@ -138,6 +139,23 @@ def approve_draft(draft_id: int) -> dict:
         item.status = ItemStatus.done
         s.add(ActionLog(summary=f"Sent your reply to {item.sender}", source=item.source))
     return {"ok": True}
+
+
+@app.post("/api/drafts/approve_all")
+def approve_all() -> dict:
+    """Approve every pending draft in one tap (the routine replies)."""
+    sent = 0
+    with session_scope() as s:
+        pending = s.query(Draft).filter(Draft.status == DraftStatus.pending).all()
+        for draft in pending:
+            item = s.get(Item, draft.item_id)
+            if not DEMO:
+                _send_draft(draft, item)
+            draft.status = DraftStatus.sent
+            item.status = ItemStatus.done
+            s.add(ActionLog(summary=f"Sent your reply to {item.sender}", source=item.source))
+            sent += 1
+    return {"ok": True, "sent": sent}
 
 
 @app.post("/api/drafts/{draft_id}")

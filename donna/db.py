@@ -123,6 +123,7 @@ class Draft(Base):
     channel: Mapped[Source] = mapped_column(Enum(Source))
     to: Mapped[Optional[str]] = mapped_column(String(320))
     body: Mapped[str] = mapped_column(Text)
+    summary: Mapped[Optional[str]] = mapped_column(String(200))  # one-line "Donna will…"
     status: Mapped[DraftStatus] = mapped_column(Enum(DraftStatus), default=DraftStatus.pending)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

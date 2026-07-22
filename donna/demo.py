@@ -78,14 +78,17 @@ def seed_demo() -> None:
         s.add_all([
             Draft(item_id=i1.id, channel=Source.gmail, to="marco@abctrading.com",
                   status=DraftStatus.pending,
+                  summary="Confirm the terms look good and ask for the signed PDF today.",
                   body="Hi Marco — the revised terms look good on our end. Could you "
                        "send the signed PDF today so we can lock the July delivery "
                        "slot? Appreciate the quick turnaround."),
             Draft(item_id=i2.id, channel=Source.telegram, to="0",
                   status=DraftStatus.pending,
+                  summary="Reply yes — there by 1pm, and you'll bring dessert.",
                   body="Opo Tita, andyan ako by 1pm. Ako na bahala sa dessert 🙏"),
             Draft(item_id=i3.id, channel=Source.gmail, to="ana@delgado.com",
                   status=DraftStatus.pending,
+                  summary="Ask Ana to confirm a payment date; offer to resend the invoice.",
                   body="Hi Ana — just flagging invoice #4471 (due July 10) is still "
                        "open. Could you confirm the payment date? Happy to resend the "
                        "invoice if helpful. Thanks!"),

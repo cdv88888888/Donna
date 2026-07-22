@@ -87,6 +87,7 @@ def process_email(mail) -> dict:
             s.add(Draft(
                 item_id=item.id, channel=Source.gmail,
                 to=mail.sender_email, body=body,
+                summary=brain.summarize_action(body),
             ))
             made_draft = True
 
@@ -143,7 +144,8 @@ def process_telegram(msg) -> dict:
                 examples=examples,
             )
             s.add(Draft(item_id=item.id, channel=Source.telegram,
-                        to=str(msg.chat_id), body=body))
+                        to=str(msg.chat_id), body=body,
+                        summary=brain.summarize_action(body)))
             made_draft = True
 
         return {"needs_you": True, "priority": t.priority,

@@ -127,6 +127,19 @@ def draft(
     return body.strip()
 
 
+def summarize_action(draft_body: str) -> str:
+    """Compress a draft into one plain line: 'Donna will …' (no 'Donna will' prefix)."""
+    line = _call(
+        settings.model_triage,
+        system="Summarize what this reply does in ONE short line (max 14 words), "
+        "starting with a verb (e.g. 'Confirm the terms and ask for the signed PDF'). "
+        "No quotes, no preamble.",
+        user=draft_body,
+        max_tokens=60,
+    )
+    return line.strip().strip('"')
+
+
 def ask(system: str, user: str, model: Optional[str] = None, max_tokens: int = 1500) -> str:
     """General-purpose call for the command bar and the daily brief."""
     return _call(model or settings.model_draft, system, user, max_tokens=max_tokens)
