@@ -106,7 +106,8 @@ class Item(Base):
     sender: Mapped[Optional[str]] = mapped_column(String(320))
     sender_contact_id: Mapped[Optional[int]] = mapped_column(ForeignKey("contacts.id"))
     subject: Mapped[Optional[str]] = mapped_column(String(500))
-    snippet: Mapped[Optional[str]] = mapped_column(Text)
+    snippet: Mapped[Optional[str]] = mapped_column(Text)          # one-line preview
+    body: Mapped[Optional[str]] = mapped_column(Text)             # full incoming message
     priority: Mapped[Priority] = mapped_column(Enum(Priority), default=Priority.normal)
     reason: Mapped[Optional[str]] = mapped_column(String(500))  # why Donna flagged it
     status: Mapped[ItemStatus] = mapped_column(Enum(ItemStatus), default=ItemStatus.open)

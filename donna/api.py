@@ -73,6 +73,7 @@ def state() -> dict:
                 "sender": it.sender,
                 "subject": it.subject,
                 "snippet": it.snippet,
+                "body": it.body,               # the original message Donna is replying to
                 "priority": it.priority.value,
                 "reason": it.reason,
                 "when": _ago(it.created_at),

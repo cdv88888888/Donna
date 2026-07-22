@@ -40,18 +40,36 @@ def seed_demo() -> None:
         i1 = Item(source=Source.gmail, external_id="demo1", thread_id="t1",
                   sender="Marco — ABC Trading", sender_contact_id=vips[0].id,
                   subject="Re: Q3 supplier contract — revised terms attached",
-                  snippet="The revised terms look good…", priority=Priority.high,
+                  snippet="Hi — attached the revised Q3 terms. We moved the unit "
+                          "price to ₱48.50 and kept the July delivery window…",
+                  body="Hi,\n\nThanks for the call earlier. As agreed, I've attached "
+                       "the revised Q3 supplier contract. Two changes from the last "
+                       "version:\n\n1. Unit price adjusted to ₱48.50 (from ₱51.00)\n"
+                       "2. July delivery window retained, with a 3-day grace period\n\n"
+                       "If these look good on your end, can you sign and return so we "
+                       "can lock the July slot? Our production calendar fills up fast "
+                       "this quarter.\n\nBest,\nMarco\nABC Trading",
+                  priority=Priority.high,
                   reason="Contract decision needed", status=ItemStatus.open,
                   created_at=now - dt.timedelta(hours=2))
         i2 = Item(source=Source.telegram, external_id="demo2", thread_id="t2",
                   sender="Tita Cora", sender_contact_id=vips[1].id,
                   subject="Pupunta ka ba sa Linggo?",
-                  snippet="Anak, pupunta ka ba sa Linggo?", priority=Priority.normal,
+                  snippet="Anak, pupunta ka ba sa Linggo?",
+                  body="Anak, pupunta ka ba sa Linggo? Handaan ni Lolo, 12nn sa bahay. "
+                       "Sabi ni Mama baka raw busy ka. Pakisagot na lang para makabili "
+                       "ako ng ulam. 🙏",
+                  priority=Priority.normal,
                   reason="Family, quick reply", status=ItemStatus.open,
                   created_at=now - dt.timedelta(hours=11))
         i3 = Item(source=Source.gmail, external_id="demo3", thread_id="t3",
-                  sender="Invoice #4471", subject="Payment from Delgado & Co. is 12 days late",
-                  snippet="Overdue 12 days", priority=Priority.urgent,
+                  sender="Ana — Delgado & Co.", subject="Payment from Delgado & Co. is 12 days late",
+                  snippet="Following up on invoice #4471, due July 10, still unpaid…",
+                  body="Hi,\n\nApologies for the delay. We received invoice #4471 "
+                       "(due July 10) but it's stuck in our approval queue while our "
+                       "finance lead is on leave. I don't have a firm date yet.\n\n"
+                       "Will this hold up the next shipment?\n\nThanks,\nAna",
+                  priority=Priority.urgent,
                   reason="Money, overdue", status=ItemStatus.open,
                   created_at=now - dt.timedelta(days=12))
         s.add_all([i1, i2, i3])

@@ -21,6 +21,16 @@ function label(name, count) {
 
 function needsCard(it) {
   const cls = ["urgent", "high"].includes(it.priority) ? "card urgent" : "card";
+  const original = it.body || it.snippet || "";
+  const who = (it.sender || "").split("—")[0].trim();
+  const long = original.length > 140;
+  const incoming = original
+    ? `<div class="incoming">
+         <span class="tag">What you're replying to${who ? " · " + esc(who) : ""}</span>
+         <p class="msg ${long ? "clamp" : ""}" id="m${it.id}">${esc(original)}</p>
+         ${long ? `<button class="more" onclick="toggleMsg(${it.id}, this)">Show full message</button>` : ""}
+       </div>`
+    : "";
   const draft = it.draft
     ? `<div class="donna"><span class="tag">Donna drafted a reply · in your voice</span>
          <p id="d${it.draft.id}">${esc(it.draft.body)}</p></div>
@@ -40,8 +50,15 @@ function needsCard(it) {
       <span class="when">${esc(it.when || "")}</span>
     </div>
     <h3>${esc(it.subject || "(no subject)")}</h3>
+    ${incoming}
     ${draft}
   </div>`;
+}
+
+function toggleMsg(id, btn) {
+  const p = document.getElementById("m" + id);
+  const collapsed = p.classList.toggle("clamp");
+  btn.textContent = collapsed ? "Show full message" : "Show less";
 }
 
 function render(state) {
