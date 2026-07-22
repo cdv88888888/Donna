@@ -141,7 +141,10 @@ class FollowUp(Base):
 
     @property
     def age_days(self) -> int:
-        return (utcnow() - self.last_activity).days
+        last = self.last_activity
+        if last.tzinfo is None:  # SQLite returns naive datetimes; treat as UTC
+            last = last.replace(tzinfo=dt.timezone.utc)
+        return (utcnow() - last).days
 
 
 class Task(Base):

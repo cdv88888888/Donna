@@ -18,19 +18,21 @@ class Settings(BaseSettings):
     )
 
     # Brain
-    anthropic_api_key: str = Field(alias="ANTHROPIC_API_KEY")
+    # Secret/identity fields default to empty so the app can boot in DEMO mode
+    # without credentials; call require_live() before doing anything real.
+    anthropic_api_key: str = Field("", alias="ANTHROPIC_API_KEY")
     model_draft: str = Field("claude-opus-4-8", alias="DONNA_MODEL_DRAFT")
     model_triage: str = Field("claude-sonnet-5", alias="DONNA_MODEL_TRIAGE")
 
     # Owner
-    owner_telegram_id: int = Field(alias="OWNER_TELEGRAM_ID")
+    owner_telegram_id: int = Field(0, alias="OWNER_TELEGRAM_ID")
     owner_name: str = Field("there", alias="OWNER_NAME")
-    owner_email: str = Field(alias="OWNER_EMAIL")
+    owner_email: str = Field("", alias="OWNER_EMAIL")
     owner_timezone: str = Field("UTC", alias="OWNER_TIMEZONE")
 
     # Telegram
-    telegram_api_id: int = Field(alias="TELEGRAM_API_ID")
-    telegram_api_hash: str = Field(alias="TELEGRAM_API_HASH")
+    telegram_api_id: int = Field(0, alias="TELEGRAM_API_ID")
+    telegram_api_hash: str = Field("", alias="TELEGRAM_API_HASH")
     telegram_session: str = Field("", alias="TELEGRAM_SESSION")
 
     # Google
@@ -57,6 +59,15 @@ class Settings(BaseSettings):
     def brief_hour_minute(self) -> tuple[int, int]:
         h, m = self.brief_time.split(":")
         return int(h), int(m)
+
+    def require_live(self) -> None:
+        """Raise if credentials needed for real operation are missing."""
+        missing = [n for n, v in {
+            "ANTHROPIC_API_KEY": self.anthropic_api_key,
+            "OWNER_EMAIL": self.owner_email,
+        }.items() if not v]
+        if missing:
+            raise RuntimeError(f"Missing required config: {', '.join(missing)}")
 
 
 @lru_cache
