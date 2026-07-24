@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Donna — Projects</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;--amber:#B07D2B;--shadow:0 1px 2px rgba(30,43,43,.05),0 8px 24px rgba(30,43,43,.06);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+  @media (prefers-color-scheme:dark){:root{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;--amber:#D6A24A;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);}}
+  :root[data-theme="light"]{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;--amber:#B07D2B;}
+  :root[data-theme="dark"]{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;--amber:#D6A24A;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:680px;margin:0 auto;padding:34px 22px 60px;}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:var(--paper);font-family:var(--serif);font-weight:700;font-size:17px;}
+  .brand .name{font-family:var(--serif);font-size:19px;font-weight:600;}
+  .theme-btn{border:1px solid var(--line);background:transparent;color:var(--ink-faint);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);}
+  .nav{display:flex;gap:6px;margin-bottom:26px;}
+  .nav a{flex:1;text-align:center;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--ink-soft);padding:9px;border-radius:10px;border:1px solid var(--line);}
+  .nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .head{margin-bottom:20px;}
+  .head h1{font-family:var(--serif);font-size:30px;margin:0 0 6px;}
+  .head .sub{color:var(--ink-soft);font-size:14.5px;margin:0;}
+  .head .sub b{color:var(--ink);} .head .sub .r{color:var(--urgent);font-weight:600;} .head .sub .a{color:var(--amber);font-weight:600;}
+  .stack{display:flex;flex-direction:column;gap:14px;}
+  .proj{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px 17px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .25s,transform .25s;}
+  .proj::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--good);}
+  .proj.needs::before{background:var(--urgent);} .proj.stalled::before{background:var(--amber);}
+  .prow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px;}
+  .status{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em;display:inline-flex;align-items:center;gap:5px;}
+  .status.needs{background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
+  .status.ontrack{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good);}
+  .status.stalled{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber);}
+  .chip{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--brass) 14%,transparent);color:var(--brass-deep);font-family:var(--mono);}
+  .chip.due.soon{background:color-mix(in srgb,var(--urgent) 14%,transparent);color:var(--urgent);}
+  .menu{margin-left:auto;color:var(--ink-faint);font-size:18px;cursor:pointer;line-height:1;padding:0 4px;background:none;border:none;}
+  .pname{font-family:var(--serif);font-size:18px;font-weight:600;margin:2px 0 10px;line-height:1.25;}
+  .next{background:color-mix(in srgb,var(--brass) 8%,transparent);border:1px solid color-mix(in srgb,var(--brass) 22%,transparent);border-radius:10px;padding:9px 12px;margin-bottom:12px;}
+  .next .k{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:2px;}
+  .next .v{font-family:var(--serif);font-size:14.5px;color:var(--ink);}
+  .people{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .avs{display:flex;}
+  .av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--paper);background:var(--brass);border:2px solid var(--card);margin-left:-7px;}
+  .av:first-child{margin-left:0;}
+  .owes{font-size:12.5px;color:var(--ink-soft);} .owes b{color:var(--ink);}
+  .foot{display:flex;align-items:center;gap:10px;border-top:1px dashed var(--line);padding-top:10px;flex-wrap:wrap;}
+  .src{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+  .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
+  .when{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-left:auto;}
+  .byd{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;}
+  .gone{opacity:0;transform:scale(.96);height:0;padding:0;margin:0;border:0;}
+  .foot .open{font-size:12px;font-weight:600;color:var(--brass-deep);background:none;border:none;cursor:pointer;font-family:var(--sans);}
+  @media (max-width:520px){.head h1{font-size:26px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="mark">D</div><div class="name">Donna</div></div>
+    <button class="theme-btn" id="theme">◑ Theme</button>
+  </div>
+  <div class="nav">
+    <a href="./">Today</a>
+    <a href="./projects.html" class="on">Projects</a>
+  </div>
+
+  <div class="head">
+    <h1>Projects</h1>
+    <p class="sub"><b>5 active</b> · <span class="r">2 need you</span> · <span class="a">1 stalled</span> · Donna is tracking these across Gmail, Telegram &amp; Calendar</p>
+  </div>
+
+  <div class="stack" id="stack">
+
+    <div class="proj needs">
+      <div class="prow">
+        <span class="status needs">● Needs you</span>
+        <span class="chip due soon">Due Jul 31</span>
+        <span class="byd">Donna created</span>
+        <button class="menu" title="Merge / rename / dismiss">⋯</button>
+      </div>
+      <div class="pname">Q3 Supplier Contract — ABC Trading</div>
+      <div class="next"><span class="k">Next action</span><span class="v">Get Marco's signed PDF to lock the July delivery slot.</span></div>
+      <div class="people"><div class="avs"><div class="av" style="background:var(--urgent)">MG</div><div class="av" style="background:#5B7A99">YO</div></div>
+        <div class="owes"><b>Marco</b> owes you the signed contract</div></div>
+      <div class="foot"><span class="src">✉ 4 · ✈ 1 · ◷ 1</span><span class="badge">2 need you</span><span class="when">2h ago</span></div>
+    </div>
+
+    <div class="proj needs">
+      <div class="prow">
+        <span class="status needs">● Needs you</span>
+        <span class="chip due soon">₱ overdue · 12d</span>
+        <span class="byd">Donna created</span>
+        <button class="menu" title="Merge / rename / dismiss">⋯</button>
+      </div>
+      <div class="pname">Delgado &amp; Co. — Overdue Payment</div>
+      <div class="next"><span class="k">Next action</span><span class="v">Approve the firm follow-up on invoice #4471 and pin a payment date.</span></div>
+      <div class="people"><div class="avs"><div class="av" style="background:var(--urgent)">AN</div></div>
+        <div class="owes"><b>Ana</b> owes you a committed payment date</div></div>
+      <div class="foot"><span class="src">✉ 3</span><span class="badge">1 needs you</span><span class="when">12d ago</span></div>
+    </div>
+
+    <div class="proj stalled">
+      <div class="prow">
+        <span class="status stalled">● Stalled</span>
+        <span class="chip">quiet 6d</span>
+        <span class="byd">Donna created</span>
+        <button class="menu" title="Merge / rename / dismiss">⋯</button>
+      </div>
+      <div class="pname">Warehouse Lease Renewal</div>
+      <div class="next"><span class="k">Next action</span><span class="v">Nudge Rina Santos — no reply since you sent terms 6 days ago. Donna drafted a chase.</span></div>
+      <div class="people"><div class="avs"><div class="av" style="background:#8A6BA1">RS</div></div>
+        <div class="owes"><b>Rina</b> owes you a reply</div></div>
+      <div class="foot"><span class="src">✉ 2</span><button class="open">Send the nudge →</button><span class="when">6d ago</span></div>
+    </div>
+
+    <div class="proj">
+      <div class="prow">
+        <span class="status ontrack">● On track</span>
+        <span class="chip">Due Jul 25</span>
+        <span class="byd">Donna created</span>
+        <button class="menu" title="Merge / rename / dismiss">⋯</button>
+      </div>
+      <div class="pname">BIR Q2 Filing</div>
+      <div class="next"><span class="k">Next action</span><span class="v">Confirm accounting received the Q2 docs — nothing needed from you yet.</span></div>
+      <div class="people"><div class="avs"><div class="av" style="background:var(--good)">AC</div></div>
+        <div class="owes"><b>Accounting</b> owes confirmation</div></div>
+      <div class="foot"><span class="src">✉ 2</span><span class="when">3d ago</span></div>
+    </div>
+
+    <div class="proj">
+      <div class="prow">
+        <span class="status ontrack">● On track</span>
+        <span class="byd">Donna created</span>
+        <button class="menu" title="Merge / rename / dismiss">⋯</button>
+      </div>
+      <div class="pname">Cebu Route Launch</div>
+      <div class="next"><span class="k">Next action</span><span class="v">Review Kevin's logistics quote when it lands (expected this week).</span></div>
+      <div class="people"><div class="avs"><div class="av" style="background:#5B7A99">KV</div></div>
+        <div class="owes"><b>Kevin</b> owes the route quote</div></div>
+      <div class="foot"><span class="src">✈ 2 · ◷ 1</span><span class="when">1d ago</span></div>
+    </div>
+
+  </div>
+</div>
+<script>
+  document.getElementById("theme").onclick = () => {
+    const root = document.documentElement, dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = root.getAttribute("data-theme") || (dark ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  };
+  // Decorative: dismiss a project card with a fade (real version: merge/split/dismiss + Donna learns)
+  document.querySelectorAll(".menu").forEach(b=>b.onclick=()=>{
+    const p=b.closest(".proj"); p.classList.add("gone"); setTimeout(()=>p.remove(),260);
+  });
+  document.querySelectorAll(".open").forEach(b=>b.onclick=()=>{ b.textContent="Nudge drafted ✓"; b.style.color="var(--good)"; });
+</script>
+</body>
+</html>

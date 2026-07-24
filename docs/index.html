@@ -20,6 +20,9 @@
   .greet{font-family:var(--serif);font-size:34px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance;margin:0 0 14px;}
   .thesis{font-family:var(--serif);font-size:19px;color:var(--ink-soft);max-width:34ch;margin:0;}
   .thesis b{color:var(--ink);font-weight:600;} .thesis .num{color:var(--brass-deep);font-weight:700;font-variant-numeric:tabular-nums;}
+  .nav{display:flex;gap:6px;margin:0 0 24px;}
+  .nav a{flex:1;text-align:center;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--ink-soft);padding:9px;border-radius:10px;border:1px solid var(--line);}
+  .nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
   .label{display:flex;align-items:center;gap:12px;margin:44px 0 16px;}
   .label span{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
   .label .rule{flex:1;height:1px;background:var(--line);}
@@ -79,6 +82,7 @@
     <div class="brand"><div class="mark">D</div><div class="name">Donna</div></div>
     <button class="theme-btn" id="theme">◑ Theme</button>
   </div>
+  <div class="nav"><a href="./" class="on">Today</a><a href="./projects.html">Projects</a></div>
   <h1 class="greet">Good morning.</h1>
   <p class="thesis">While you were away, <span class="num">127</span> things came in. I handled <span class="num">9</span>. <b><span id="needNum">4</span> need you.</b></p>
 
