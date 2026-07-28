@@ -56,6 +56,7 @@ class Source(str, enum.Enum):
     gmail = "gmail"
     telegram = "telegram"
     calendar = "calendar"
+    monday = "monday"
     system = "system"
 
 
@@ -80,6 +81,12 @@ class DraftStatus(str, enum.Enum):
     sent = "sent"
     edited = "edited"
     rejected = "rejected"
+
+
+class ProjectStatus(str, enum.Enum):
+    needs_you = "needs_you"   # has an open decision or deadline risk
+    stalled = "stalled"       # quiet past the threshold
+    on_track = "on_track"     # moving, nothing needed from you
 
 
 # ── Models ───────────────────────────────────────────────────────────
@@ -111,6 +118,7 @@ class Item(Base):
     priority: Mapped[Priority] = mapped_column(Enum(Priority), default=Priority.normal)
     reason: Mapped[Optional[str]] = mapped_column(String(500))  # why Donna flagged it
     status: Mapped[ItemStatus] = mapped_column(Enum(ItemStatus), default=ItemStatus.open)
+    project_id: Mapped[Optional[int]] = mapped_column(ForeignKey("projects.id"))  # for per-project rollup
     snooze_until: Mapped[Optional[dt.datetime]] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -201,6 +209,53 @@ class Setting(Base):
     __tablename__ = "settings"
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     value: Mapped[str] = mapped_column(String(256))
+
+
+class Project(Base):
+    """A thing the owner is working on, auto-grouped from messages across sources."""
+    __tablename__ = "projects"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(300))
+    company: Mapped[Optional[str]] = mapped_column(String(200))
+    status: Mapped[ProjectStatus] = mapped_column(Enum(ProjectStatus), default=ProjectStatus.on_track)
+    next_action: Mapped[Optional[str]] = mapped_column(Text)
+    owes: Mapped[Optional[str]] = mapped_column(String(300))       # "Marco owes you the signed PDF"
+    deadline: Mapped[Optional[dt.datetime]] = mapped_column(DateTime(timezone=True))
+    amount: Mapped[Optional[str]] = mapped_column(String(60))      # e.g. "₱2.4M", "overdue 12d"
+    participants: Mapped[list] = mapped_column(JSON, default=list) # display names
+    match_keys: Mapped[list] = mapped_column(JSON, default=list)   # emails / invoice#s / keywords for assignment
+    created_by: Mapped[str] = mapped_column(String(20), default="donna")
+    dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
+    pending: Mapped[int] = mapped_column(Integer, default=0)   # external "needs you" (e.g. Monday items)
+    external_ref: Mapped[Optional[str]] = mapped_column(String(120))  # e.g. "monday:board:123"
+    last_activity: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    members: Mapped[list["ProjectItem"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
+
+    @property
+    def age_days(self) -> int:
+        last = self.last_activity
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=dt.timezone.utc)
+        return (utcnow() - last).days
+
+
+class ProjectItem(Base):
+    """A message/event attached to a project (any source, whether or not it's an open Item)."""
+    __tablename__ = "project_items"
+    __table_args__ = (UniqueConstraint("source", "external_id", name="uq_projitem_src_ext"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
+    source: Mapped[Source] = mapped_column(Enum(Source))
+    external_id: Mapped[str] = mapped_column(String(256))
+    label: Mapped[Optional[str]] = mapped_column(String(300))
+    when: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    project: Mapped[Project] = relationship(back_populates="members")
 
 
 # ── Engine / session ─────────────────────────────────────────────────

@@ -14,6 +14,9 @@ from .db import (
     Item,
     ItemStatus,
     Priority,
+    Project,
+    ProjectItem,
+    ProjectStatus,
     Source,
     Task,
     session_scope,
@@ -115,4 +118,67 @@ def seed_demo() -> None:
             ActionLog(summary="Filed 2 newsletters to 'Read later'", source=Source.gmail),
             ActionLog(summary="Confirmed your 11:30 dentist appointment",
                       source=Source.calendar),
+        ])
+
+        # ── Projects (auto-grouped) ──────────────────────────────────
+        p1 = Project(
+            name="Q3 Supplier Contract — ABC Trading", company="ABC Trading",
+            status=ProjectStatus.needs_you,
+            next_action="Get Marco's signed PDF to lock the July delivery slot.",
+            owes="Marco owes you the signed contract",
+            deadline=now + dt.timedelta(days=3), amount=None,
+            participants=["Marco", "You"], match_keys=["abctrading.com", "Q3 contract", "Marco"],
+            last_activity=now - dt.timedelta(hours=2))
+        p2 = Project(
+            name="Delgado & Co. — Overdue Payment", company="Delgado & Co.",
+            status=ProjectStatus.needs_you,
+            next_action="Approve the firm follow-up on invoice #4471 and pin a payment date.",
+            owes="Ana owes you a committed payment date",
+            amount="overdue 12d",
+            participants=["Ana"], match_keys=["delgado", "#4471", "invoice"],
+            last_activity=now - dt.timedelta(days=12))
+        p3 = Project(
+            name="Warehouse Lease Renewal", status=ProjectStatus.stalled,
+            next_action="Nudge Rina Santos — no reply since you sent terms 6 days ago.",
+            owes="Rina owes you a reply", participants=["Rina Santos"],
+            match_keys=["warehouse", "lease", "Rina"],
+            last_activity=now - dt.timedelta(days=6))
+        p4 = Project(
+            name="BIR Q2 Filing", status=ProjectStatus.on_track,
+            next_action="Confirm accounting received the Q2 docs — nothing needed from you yet.",
+            owes="Accounting owes confirmation", deadline=now + dt.timedelta(days=6),
+            participants=["Accounting"], match_keys=["BIR", "Q2", "filing"],
+            last_activity=now - dt.timedelta(days=3))
+        p5 = Project(
+            name="Cebu Route Launch", status=ProjectStatus.on_track,
+            next_action="Review Kevin's logistics quote when it lands (expected this week).",
+            owes="Kevin owes the route quote", participants=["Kevin"],
+            match_keys=["Cebu", "route", "Kevin", "logistics"],
+            last_activity=now - dt.timedelta(days=1))
+        p6 = Project(
+            name="CDV Check Requests — Masagana", created_by="monday",
+            external_ref="monday:board:demo", status=ProjectStatus.needs_you,
+            next_action="3 item(s) need attention on the CDV Check Request board.",
+            pending=3, match_keys=["CDV", "check request"],
+            last_activity=now - dt.timedelta(hours=5))
+        s.add_all([p1, p2, p3, p4, p5, p6])
+        s.flush()
+
+        i1.project_id = p1.id
+        i3.project_id = p2.id
+        s.add_all([
+            ProjectItem(project_id=p1.id, source=Source.gmail, external_id="demo1",
+                        label="Revised Q3 contract from Marco"),
+            ProjectItem(project_id=p1.id, source=Source.calendar, external_id="pi-abc-call",
+                        label="Vendor call"),
+            ProjectItem(project_id=p2.id, source=Source.gmail, external_id="demo3",
+                        label="Invoice #4471 overdue"),
+            ProjectItem(project_id=p3.id, source=Source.gmail, external_id="pi-lease-1",
+                        label="Warehouse lease terms sent"),
+            ProjectItem(project_id=p4.id, source=Source.gmail, external_id="pi-bir-1",
+                        label="Q2 filing docs to accounting"),
+            ProjectItem(project_id=p5.id, source=Source.telegram, external_id="pi-cebu-1",
+                        label="Kevin — Cebu route chat"),
+            ProjectItem(project_id=p6.id, source=Source.monday, external_id="board:demo",
+                        label="CDV Check Request board"),
         ])

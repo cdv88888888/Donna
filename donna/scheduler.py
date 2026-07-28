@@ -47,6 +47,15 @@ def _run_conflicts() -> None:
         log.exception("conflict scan failed")
 
 
+def _run_projects() -> None:
+    from .skills import projects
+    try:
+        projects.sync_monday()            # refresh Monday boards (no-op if unconfigured)
+        projects.recompute_all_status()   # stalled / deadline-risk / needs-you upkeep
+    except Exception:
+        log.exception("project status upkeep failed")
+
+
 def _run_brief() -> None:
     from .skills import brief
     try:
@@ -62,6 +71,7 @@ def build_scheduler() -> AsyncIOScheduler:
                   id="inbox", max_instances=1, coalesce=True)
     sched.add_job(_run_followups, IntervalTrigger(hours=1), id="followups")
     sched.add_job(_run_conflicts, IntervalTrigger(hours=1), id="conflicts")
+    sched.add_job(_run_projects, IntervalTrigger(hours=1), id="projects")
     hour, minute = settings.brief_hour_minute
     sched.add_job(_run_brief, CronTrigger(hour=hour, minute=minute), id="brief")
     return sched

@@ -140,6 +140,40 @@ def summarize_action(draft_body: str) -> str:
     return line.strip().strip('"')
 
 
+CLUSTER_SYSTEM = """You are {owner}'s chief of staff. Below are recent messages \
+and events from their Gmail, Telegram, and Calendar. Group the ones that belong \
+to the same real project/initiative (a deal, a client matter, a deliverable, \
+anything with an outcome, deadline, or money). Ignore one-off noise \
+(newsletters, receipts, automated notices) — those are not projects.
+
+A cluster only counts as a project if it has 2+ related messages OR a clear \
+client/company, deadline, or money attached.
+
+Return ONLY a JSON array. Each element:
+{{"name":"short project name (include company if relevant)","company":"or null",
+"next_action":"the single next thing to do, in one line","owes":"who owes what, or null",
+"amount":"e.g. ₱2.4M / overdue 12d / null","deadline":"YYYY-MM-DD or null",
+"participants":["display names"],"match_keys":["emails, invoice#s, distinctive keywords"],
+"member_ids":[the id numbers of the messages in this cluster]}}"""
+
+
+def cluster_projects(corpus: str) -> list[dict]:
+    """Group message summaries into projects. `corpus` lists items prefixed by id."""
+    raw = _call(
+        settings.model_draft,
+        CLUSTER_SYSTEM.format(owner=settings.owner_name),
+        corpus,
+        max_tokens=2500,
+    )
+    raw = raw.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].lstrip("json").strip()
+    start, end = raw.find("["), raw.rfind("]")
+    if start == -1 or end == -1:
+        return []
+    return json.loads(raw[start : end + 1])
+
+
 def ask(system: str, user: str, model: Optional[str] = None, max_tokens: int = 1500) -> str:
     """General-purpose call for the command bar and the daily brief."""
     return _call(model or settings.model_draft, system, user, max_tokens=max_tokens)

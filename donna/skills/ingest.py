@@ -168,6 +168,9 @@ def poll_inbox() -> dict:
         elif result.get("needs_you"):
             surfaced += 1
             gmail.mark_read(mail.id)
+            if result.get("item_id"):
+                from . import projects
+                projects.assign_item(result["item_id"])   # attach to a project if it fits
             if result.get("priority") in ("urgent", "high"):
                 push_if_urgent(mail.subject or "New message", result.get("reason", ""))
     return {"seen": seen, "handled": handled, "surfaced": surfaced}
