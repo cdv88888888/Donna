@@ -221,7 +221,8 @@ function projCard(p) {
   const chips = [
     p.deadline ? `<span class="pchip">${esc(p.deadline)}</span>` : "",
     p.amount ? `<span class="pchip">${esc(p.amount)}</span>` : "",
-    p.created_by === "donna" ? `<span class="byd">Donna created</span>` : "",
+    p.created_by === "monday" ? `<span class="byd">⬡ Monday board</span>`
+      : p.created_by === "donna" ? `<span class="byd">Donna created</span>` : "",
   ].join("");
   return `<div class="proj ${p.status}">
     <div class="prow">

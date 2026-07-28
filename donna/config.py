@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     )
     google_token_json: str = Field("", alias="GOOGLE_TOKEN_JSON")
 
+    # Monday.com (optional project source)
+    monday_api_token: str = Field("", alias="MONDAY_API_TOKEN")
+    monday_board_ids: str = Field("", alias="MONDAY_BOARD_IDS")  # comma-separated board ids
+
+    @property
+    def monday_boards(self) -> list[str]:
+        return [b.strip() for b in self.monday_board_ids.split(",") if b.strip()]
+
     # Behavior
     comms_autonomy: str = Field("draft", alias="COMMS_AUTONOMY")  # draft | auto_low
     calendar_autonomy: str = Field("auto", alias="CALENDAR_AUTONOMY")  # auto | ask

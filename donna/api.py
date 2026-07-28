@@ -139,7 +139,7 @@ def state() -> dict:
 
 
 # ── Projects ─────────────────────────────────────────────────────────
-_SRC_ICON = {"gmail": "✉", "telegram": "✈", "calendar": "◷", "system": "•"}
+_SRC_ICON = {"gmail": "✉", "telegram": "✈", "calendar": "◷", "monday": "⬡", "system": "•"}
 
 
 @app.get("/api/projects")
@@ -159,6 +159,7 @@ def projects() -> dict:
                 s.query(Item)
                 .filter(Item.project_id == p.id, Item.status == ItemStatus.open)
                 .count()
+                + (p.pending or 0)   # external needs, e.g. pending Monday items
             )
             out.append({
                 "id": p.id,
@@ -208,6 +209,14 @@ def backfill_projects() -> dict:
         return {"note": "Demo mode — projects are pre-seeded."}
     from .skills import projects as proj
     return proj.backfill()
+
+
+@app.post("/api/projects/sync-monday")
+def sync_monday_projects() -> dict:
+    if DEMO:
+        return {"note": "Demo mode — a sample Monday project is pre-seeded."}
+    from .skills import projects as proj
+    return proj.sync_monday()
 
 
 # ── Actions ──────────────────────────────────────────────────────────

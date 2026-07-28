@@ -147,6 +147,43 @@ def _gather() -> list[dict]:
     return rows
 
 
+_DONE_WORDS = {"done", "approved", "proceed", "completed", "paid", "closed", "resolved", "sent"}
+
+
+def sync_monday() -> dict:
+    """Turn each configured Monday board into a live project card."""
+    from ..integrations import monday
+
+    boards = monday.fetch_boards()
+    if not boards:
+        return {"boards": 0, "note": "no Monday token/boards configured"}
+
+    synced = 0
+    with session_scope() as s:
+        for b in boards:
+            pending = [
+                it for it in b.items
+                if not any(w in (it.status or it.group).lower() for w in _DONE_WORDS)
+            ]
+            ref = f"monday:board:{b.id}"
+            p = s.query(Project).filter(Project.external_ref == ref).one_or_none()
+            if not p:
+                p = Project(name=b.name, created_by="monday", external_ref=ref,
+                            match_keys=[b.name])
+                s.add(p)
+                s.flush()
+            p.pending = len(pending)
+            p.next_action = (
+                f"{len(pending)} item(s) need attention on the {b.name} board."
+                if pending else f"All items on {b.name} are handled."
+            )
+            p.status = ProjectStatus.needs_you if pending else ProjectStatus.on_track
+            p.last_activity = utcnow()
+            _touch(s, p, Source.monday, f"board:{b.id}", b.name)
+            synced += 1
+    return {"boards": len(boards), "synced": synced}
+
+
 def backfill() -> dict:
     """Scan recent history and (re)build projects. Auto-creates per the owner's setting."""
     rows = _gather()
