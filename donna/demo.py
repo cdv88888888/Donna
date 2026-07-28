@@ -155,7 +155,13 @@ def seed_demo() -> None:
             owes="Kevin owes the route quote", participants=["Kevin"],
             match_keys=["Cebu", "route", "Kevin", "logistics"],
             last_activity=now - dt.timedelta(days=1))
-        s.add_all([p1, p2, p3, p4, p5])
+        p6 = Project(
+            name="CDV Check Requests — Masagana", created_by="monday",
+            external_ref="monday:board:demo", status=ProjectStatus.needs_you,
+            next_action="3 item(s) need attention on the CDV Check Request board.",
+            pending=3, match_keys=["CDV", "check request"],
+            last_activity=now - dt.timedelta(hours=5))
+        s.add_all([p1, p2, p3, p4, p5, p6])
         s.flush()
 
         i1.project_id = p1.id
@@ -173,4 +179,6 @@ def seed_demo() -> None:
                         label="Q2 filing docs to accounting"),
             ProjectItem(project_id=p5.id, source=Source.telegram, external_id="pi-cebu-1",
                         label="Kevin — Cebu route chat"),
+            ProjectItem(project_id=p6.id, source=Source.monday, external_id="board:demo",
+                        label="CDV Check Request board"),
         ])

@@ -56,6 +56,7 @@ class Source(str, enum.Enum):
     gmail = "gmail"
     telegram = "telegram"
     calendar = "calendar"
+    monday = "monday"
     system = "system"
 
 
@@ -225,6 +226,8 @@ class Project(Base):
     match_keys: Mapped[list] = mapped_column(JSON, default=list)   # emails / invoice#s / keywords for assignment
     created_by: Mapped[str] = mapped_column(String(20), default="donna")
     dismissed: Mapped[bool] = mapped_column(Boolean, default=False)
+    pending: Mapped[int] = mapped_column(Integer, default=0)   # external "needs you" (e.g. Monday items)
+    external_ref: Mapped[Optional[str]] = mapped_column(String(120))  # e.g. "monday:board:123"
     last_activity: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 

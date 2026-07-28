@@ -50,6 +50,7 @@ def _run_conflicts() -> None:
 def _run_projects() -> None:
     from .skills import projects
     try:
+        projects.sync_monday()            # refresh Monday boards (no-op if unconfigured)
         projects.recompute_all_status()   # stalled / deadline-risk / needs-you upkeep
     except Exception:
         log.exception("project status upkeep failed")
