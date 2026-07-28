@@ -1,0 +1,25 @@
+# Secrets — NEVER commit these
+.env
+*.session
+*.session-journal
+token_*.json
+credentials.json
+client_secret*.json
+donna.db
+donna.db-*
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
