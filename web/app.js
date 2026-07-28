@@ -198,7 +198,65 @@ async function sendCmd() {
   refresh();
 }
 
-async function refresh() { render(await api("/api/state")); }
+let currentView = "today";
+async function refresh() {
+  if (currentView === "projects") return renderProjects();
+  render(await api("/api/state"));
+}
+
+// ── Projects view ──
+function switchView(v) {
+  currentView = v;
+  document.getElementById("tabToday").classList.toggle("on", v === "today");
+  document.getElementById("tabProjects").classList.toggle("on", v === "projects");
+  const show = v === "today" ? "" : "none";
+  $("greet").style.display = show;
+  $("thesis").style.display = show;
+  refresh();
+}
+
+const PSTATUS = { needs_you: "Needs you", on_track: "On track", stalled: "Stalled" };
+
+function projCard(p) {
+  const chips = [
+    p.deadline ? `<span class="pchip">${esc(p.deadline)}</span>` : "",
+    p.amount ? `<span class="pchip">${esc(p.amount)}</span>` : "",
+    p.created_by === "donna" ? `<span class="byd">Donna created</span>` : "",
+  ].join("");
+  return `<div class="proj ${p.status}">
+    <div class="prow">
+      <span class="pstatus ${p.status}">● ${PSTATUS[p.status] || esc(p.status)}</span>
+      ${chips}
+      <button class="pmenu" title="Dismiss" onclick="dismissProject(${p.id})">⋯</button>
+    </div>
+    <div class="pname">${esc(p.name)}</div>
+    ${p.next_action ? `<div class="pnext"><span class="k">Next action</span><span class="v">${esc(p.next_action)}</span></div>` : ""}
+    ${p.owes ? `<div class="powes">${esc(p.owes)}</div>` : ""}
+    <div class="pfoot">
+      <span class="src">${esc(p.sources || "")}</span>
+      ${p.needs_you ? `<span class="badge">${p.needs_you} need you</span>` : ""}
+      <span class="when">${esc(p.when || "")}</span>
+    </div>
+  </div>`;
+}
+
+async function renderProjects() {
+  const { projects, counts } = await api("/api/projects");
+  if (!projects.length) {
+    $("sections").innerHTML = `<div class="empty">No projects yet — Donna creates them as she scans your inbox.</div>`;
+    return;
+  }
+  $("sections").innerHTML =
+    `<p class="phead"><b>${counts.active} active</b> · <span class="r">${counts.needs_you} need you</span> · <span class="a">${counts.stalled} stalled</span> · tracked across your sources</p>` +
+    `<div class="stack">${projects.map(projCard).join("")}</div>`;
+}
+
+async function dismissProject(id) {
+  await api(`/api/projects/${id}/dismiss`, { method: "POST" });
+  renderProjects();
+}
+window.switchView = switchView;
+window.dismissProject = dismissProject;
 
 // ── PWA: service worker + push registration ──
 async function setupPush() {

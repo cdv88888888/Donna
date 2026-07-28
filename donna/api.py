@@ -32,6 +32,9 @@ from .db import (
     Item,
     ItemStatus,
     Priority,
+    Project,
+    ProjectItem,
+    ProjectStatus,
     PushSub,
     Task,
     init_db,
@@ -133,6 +136,78 @@ def state() -> dict:
         "tasks": tasks,
         "handled": handled,
     }
+
+
+# ── Projects ─────────────────────────────────────────────────────────
+_SRC_ICON = {"gmail": "✉", "telegram": "✈", "calendar": "◷", "system": "•"}
+
+
+@app.get("/api/projects")
+def projects() -> dict:
+    order = {ProjectStatus.needs_you: 0, ProjectStatus.stalled: 1, ProjectStatus.on_track: 2}
+    with session_scope() as s:
+        rows = s.query(Project).filter(Project.dismissed.is_(False)).all()
+        rows.sort(key=lambda p: (order.get(p.status, 9), -p.id))
+        out = []
+        for p in rows:
+            members = s.query(ProjectItem).filter(ProjectItem.project_id == p.id).all()
+            counts: dict[str, int] = {}
+            for m in members:
+                counts[m.source.value] = counts.get(m.source.value, 0) + 1
+            src = " · ".join(f"{_SRC_ICON.get(k, '')} {v}" for k, v in counts.items())
+            needs = (
+                s.query(Item)
+                .filter(Item.project_id == p.id, Item.status == ItemStatus.open)
+                .count()
+            )
+            out.append({
+                "id": p.id,
+                "name": p.name,
+                "company": p.company,
+                "status": p.status.value,
+                "next_action": p.next_action,
+                "owes": p.owes,
+                "amount": p.amount,
+                "deadline": (f"Due {p.deadline:%b %d}" if p.deadline else None),
+                "people": p.participants or [],
+                "sources": src,
+                "needs_you": needs,
+                "created_by": p.created_by,
+                "when": _ago(p.last_activity),
+            })
+        counts = {
+            "active": len(rows),
+            "needs_you": sum(1 for p in rows if p.status == ProjectStatus.needs_you),
+            "stalled": sum(1 for p in rows if p.status == ProjectStatus.stalled),
+        }
+    return {"projects": out, "counts": counts}
+
+
+@app.post("/api/projects/{project_id}/dismiss")
+def dismiss_project(project_id: int) -> dict:
+    with session_scope() as s:
+        p = s.get(Project, project_id)
+        if p:
+            p.dismissed = True
+    return {"ok": True}
+
+
+@app.post("/api/projects/{project_id}/nudge")
+def nudge_project(project_id: int) -> dict:
+    with session_scope() as s:
+        p = s.get(Project, project_id)
+        if not p:
+            raise HTTPException(404)
+        s.add(ActionLog(summary=f"Drafted a nudge for project “{p.name}”"))
+    return {"ok": True, "message": "Nudge drafted — approve it in your queue."}
+
+
+@app.post("/api/projects/backfill")
+def backfill_projects() -> dict:
+    if DEMO:
+        return {"note": "Demo mode — projects are pre-seeded."}
+    from .skills import projects as proj
+    return proj.backfill()
 
 
 # ── Actions ──────────────────────────────────────────────────────────
