@@ -22,6 +22,7 @@ as a phone app) instead of yet another cluttered inbox.
 | **Follow-ups** | Threads you're owed a reply on are tracked and aged, with a one-tap nudge. |
 | **Morning brief** | A short, warm "here's your day" pushed to your phone each morning. |
 | **VIPs** | Anything from your key people jumps the queue regardless of the rules. |
+| **Stash** | Share a post to your Telegram Saved Messages and she files it into a bucket, turns tools into to-dos, and asks when she genuinely can't tell. |
 
 ## How it's built
 
@@ -44,6 +45,32 @@ A single always-on Python service:
 
 - **Interface:** a custom, minimal dashboard — *not* another chat app. Gmail and
   Telegram stay purely as sources she reaches into; you never have to open them.
+
+### The Stash
+
+You see a tool on Instagram, a hook on TikTok, a thread on X. You share it to
+your own **Telegram Saved Messages** and forget it. Donna picks it up and files
+it into one of four buckets:
+
+| Bucket | What lands there | Does it become a task? |
+|---|---|---|
+| **Tools to try** | a product, model or platform you could go and use | **Yes** — "Try Cursor Composer on the ERP repo" |
+| **Inspo** | hooks, formats, edits, ad angles worth stealing | no — a library, not a guilt list |
+| **Ideas** | a business thought to chew on | no |
+| **Read later** | long posts, threads, videos | no |
+
+Inside a bucket, items sit in a topic folder — *Claude Code*. Once **3 or more**
+items in that topic share one distinct angle, Donna *proposes* a sub-folder —
+*Claude Code for Meta* — and waits for your yes. She never silently invents
+near-duplicate folders, and she never splits off a group of one.
+
+When she can't tell what something is she doesn't guess. A bare Instagram or
+Facebook permalink is login-walled and carries no readable text, so instead of
+filing it somewhere plausible-but-wrong she asks you one short question — right
+back in Saved Messages. Your next plain message answers it and she files it.
+
+Marking a tool **tried** takes a one-line verdict ("good, using it" / "meh") and
+archives it. It stays searchable, so you never evaluate the same tool twice.
 - **Safety:** comms are **draft-and-approve** by default. The only autonomous
   actions are archiving low-value mail and (optionally) calendar ops. Secrets
   live only in deployment config — never in code or git.
@@ -57,7 +84,8 @@ DONNA_DEMO=1 python -m donna.main
 ```
 
 Demo mode seeds realistic sample data so you can click through the whole
-dashboard — approve a draft, dismiss an item, check off a task.
+dashboard — approve a draft, dismiss an item, check off a task, and on the
+**Stash** tab accept a proposed sub-folder split and record a verdict.
 
 ## Make it real
 
@@ -89,7 +117,8 @@ donna/
   api.py             FastAPI: dashboard state + actions
   main.py            entrypoint (web + scheduler + telegram)
   integrations/      gmail, gcal, telegram_user
-  skills/            ingest (triage), scheduling, followups, brief, commands
+  skills/            ingest (triage), scheduling, followups, brief, commands,
+                     projects, stash (buckets + sub-folder splits)
 web/                 the PWA (index.html, app.js, sw.js, manifest, icon)
 scripts/             one-time setup + voice training
 ```

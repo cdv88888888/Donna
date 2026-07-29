@@ -174,6 +174,88 @@ def cluster_projects(corpus: str) -> list[dict]:
     return json.loads(raw[start : end + 1])
 
 
+STASH_SYSTEM = """You are Donna, {owner}'s chief of staff. They just forwarded \
+you something they saw on social media. File it.
+
+There are exactly four buckets. Pick one:
+  tool  — a product, app, model, framework, or platform they could go and *try*.
+          This is the only kind that becomes a to-do.
+  inspo — content and creative worth stealing from: hooks, formats, edits, ad angles.
+  idea  — a business thought worth chewing on (ops, marketing, a competitor move).
+  read  — a long post, thread, or video worth their time later. Nothing to try.
+
+Inside a bucket, items live in a topic folder — "Claude Code", "Short-form Hooks",
+"LPG Pricing". Reuse an existing topic whenever the item plausibly belongs there;
+invent a new one only when nothing fits. Topic names are short title-case noun
+phrases, no punctuation.
+
+EXISTING TOPICS (reuse these before inventing):
+{buckets}
+
+Be honest when you don't know. Instagram and Facebook links carry almost no
+readable content — if all you have is a bare permalink with no caption, you
+genuinely cannot tell what it is, and guessing is worse than asking. Then: set
+kind to "unsorted", confidence to 0, and write the one short question you'd ask
+{owner} to place it. Never invent a product name you cannot see in the text.
+
+If {owner} has given you their own note about the item, trust it completely —
+it outranks anything you infer, and you must NOT return "unsorted".
+
+Return ONLY a JSON object:
+{{"platform":"instagram|facebook|x|youtube|tiktok|linkedin|threads|reddit|web",
+"title":"<=70 chars — what this actually is",
+"kind":"tool|inspo|idea|read|unsorted",
+"topic":"topic folder name, or null when unsorted",
+"topic_is_new":true|false,
+"confidence":0.0-1.0,
+"summary":"one line: what it is",
+"why":"one line: why they kept it, or null",
+"todo":"only when kind is tool — an action starting with a verb, e.g. \
+'Try Cursor Composer on the ERP repo'. Otherwise null",
+"question":"only when unsorted — one short question. Otherwise null"}}"""
+
+
+def classify_stash(payload: str, bucket_listing: str) -> dict:
+    """Decide which bucket and topic a forwarded post belongs in."""
+    system = STASH_SYSTEM.format(
+        owner=settings.owner_name,
+        buckets=bucket_listing or "(none yet — this is the first thing they've saved)",
+    )
+    raw = _call(settings.model_triage, system, payload[:6000], max_tokens=500)
+    return _extract_json(raw)
+
+
+SPLIT_SYSTEM = """You are tidying {owner}'s "{bucket}" folder. Its items are \
+listed below. If 3 OR MORE of them share a distinct, nameable angle, propose \
+splitting that group into a sub-folder — e.g. a "Claude Code" folder where \
+several items are specifically about running it against Meta ad accounts earns \
+a "Claude Code for Meta" sub-folder.
+
+Be conservative. Most folders have no real sub-structure and should return [].
+Never propose a sub-folder for fewer than 3 items, never propose one that would
+swallow the whole folder, and never propose two that mean the same thing.
+
+Return ONLY a JSON array (empty if nothing is worth splitting):
+[{{"name":"sub-folder name, short and specific","rationale":"one line: why these \
+belong together","member_ids":[the id numbers]}}]"""
+
+
+def propose_splits(bucket_name: str, corpus: str) -> list[dict]:
+    """Suggest sub-folders for one topic. `corpus` lists items prefixed by id."""
+    raw = _call(
+        settings.model_draft,
+        SPLIT_SYSTEM.format(owner=settings.owner_name, bucket=bucket_name),
+        corpus[:12000],
+        max_tokens=1200,
+    ).strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1].lstrip("json").strip()
+    start, end = raw.find("["), raw.rfind("]")
+    if start == -1 or end == -1:
+        return []
+    return json.loads(raw[start : end + 1])
+
+
 def ask(system: str, user: str, model: Optional[str] = None, max_tokens: int = 1500) -> str:
     """General-purpose call for the command bar and the daily brief."""
     return _call(model or settings.model_draft, system, user, max_tokens=max_tokens)

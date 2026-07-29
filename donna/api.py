@@ -8,6 +8,12 @@ Endpoints are grouped:
   POST /api/tasks                 add a to-do
   POST /api/tasks/{id}/toggle     check / uncheck a to-do
   POST /api/followups/{id}/nudge  chase a stale thread
+  GET  /api/stash                 the stash: buckets, items, open questions
+  POST /api/stash/capture         paste a link in by hand
+  POST /api/stash/{id}/answer     tell Donna what an unsorted item is
+  POST /api/stash/{id}/kind       file it yourself
+  POST /api/stash/{id}/tried      verdict + archive
+  POST /api/stash/proposals/{id}  accept / reject a sub-folder split
   POST /api/command               natural-language command bar
   GET  /api/push/key              VAPID public key
   POST /api/push/subscribe        register a device for push
@@ -25,6 +31,8 @@ from fastapi.staticfiles import StaticFiles
 from .config import settings
 from .db import (
     ActionLog,
+    Bucket,
+    BucketProposal,
     Contact,
     Draft,
     DraftStatus,
@@ -36,6 +44,9 @@ from .db import (
     ProjectItem,
     ProjectStatus,
     PushSub,
+    StashItem,
+    StashKind,
+    StashStatus,
     Task,
     init_db,
     session_scope,
@@ -139,7 +150,8 @@ def state() -> dict:
 
 
 # ── Projects ─────────────────────────────────────────────────────────
-_SRC_ICON = {"gmail": "✉", "telegram": "✈", "calendar": "◷", "monday": "⬡", "system": "•"}
+_SRC_ICON = {"gmail": "✉", "telegram": "✈", "calendar": "◷", "monday": "⬡",
+             "web": "⌘", "system": "•"}
 
 
 @app.get("/api/projects")
@@ -217,6 +229,170 @@ def sync_monday_projects() -> dict:
         return {"note": "Demo mode — a sample Monday project is pre-seeded."}
     from .skills import projects as proj
     return proj.sync_monday()
+
+
+# ── Stash ────────────────────────────────────────────────────────────
+_KIND_ORDER = [StashKind.tool, StashKind.inspo, StashKind.idea, StashKind.read]
+_KIND_META = {
+    StashKind.tool: ("Tools to try", "Forwarded, unopened, waiting on you to actually try it."),
+    StashKind.inspo: ("Inspo", "Hooks, formats and edits worth stealing. No task attached."),
+    StashKind.idea: ("Ideas", "Business thoughts to chew on when you have the room."),
+    StashKind.read: ("Read later", "Long stuff you didn't have time for."),
+}
+
+
+def _stash_item(it: StashItem) -> dict:
+    return {
+        "id": it.id,
+        "title": it.title or "(untitled)",
+        "summary": it.summary,
+        "why": it.why,
+        "note": it.note,
+        "url": it.url,
+        "platform": it.platform,
+        "kind": it.kind.value,
+        "when": _ago(it.created_at),
+        "has_task": it.task_id is not None,
+    }
+
+
+@app.get("/api/stash")
+def stash_view() -> dict:
+    with session_scope() as s:
+        asking = [
+            {**_stash_item(it), "question": it.question, "raw": it.raw_text}
+            for it in s.query(StashItem)
+            .filter(StashItem.status == StashStatus.asking)
+            .order_by(StashItem.created_at.desc())
+            .all()
+        ]
+
+        proposals = []
+        for p in (
+            s.query(BucketProposal).filter(BucketProposal.status == "pending").all()
+        ):
+            parent = s.get(Bucket, p.bucket_id)
+            proposals.append({
+                "id": p.id,
+                "parent": parent.name if parent else "",
+                "name": p.name,
+                "rationale": p.rationale,
+                "count": len(p.item_ids or []),
+            })
+
+        def _items_in(bucket_id: int) -> list[dict]:
+            rows = (
+                s.query(StashItem)
+                .filter(StashItem.bucket_id == bucket_id,
+                        StashItem.status == StashStatus.filed)
+                .order_by(StashItem.created_at.desc())
+                .all()
+            )
+            return [_stash_item(r) for r in rows]
+
+        kinds = []
+        for kind in _KIND_ORDER:
+            topics = []
+            tops = (
+                s.query(Bucket)
+                .filter(Bucket.kind == kind, Bucket.parent_id.is_(None))
+                .order_by(Bucket.name)
+                .all()
+            )
+            for b in tops:
+                subs = [
+                    {"id": c.id, "name": c.name, "items": _items_in(c.id)}
+                    for c in s.query(Bucket)
+                    .filter(Bucket.parent_id == b.id)
+                    .order_by(Bucket.name)
+                    .all()
+                ]
+                items = _items_in(b.id)
+                if not items and not any(sub["items"] for sub in subs):
+                    continue  # an empty folder is noise
+                topics.append({"id": b.id, "name": b.name, "items": items, "subs": subs})
+            label, blurb = _KIND_META[kind]
+            kinds.append({"key": kind.value, "label": label, "blurb": blurb,
+                          "topics": topics})
+
+        tried = [
+            {"id": it.id, "title": it.title, "verdict": it.verdict,
+             "kind": it.kind.value, "url": it.url, "when": _ago(it.decided_at or it.created_at)}
+            for it in s.query(StashItem)
+            .filter(StashItem.status == StashStatus.tried)
+            .order_by(StashItem.decided_at.desc())
+            .limit(30)
+            .all()
+        ]
+
+        counts = {
+            "filed": s.query(StashItem).filter(StashItem.status == StashStatus.filed).count(),
+            "asking": len(asking),
+            "tools": s.query(StashItem)
+            .filter(StashItem.status == StashStatus.filed,
+                    StashItem.kind == StashKind.tool).count(),
+            "tried": s.query(StashItem)
+            .filter(StashItem.status == StashStatus.tried).count(),
+        }
+
+    return {"asking": asking, "proposals": proposals, "kinds": kinds,
+            "tried": tried, "counts": counts}
+
+
+@app.post("/api/stash/capture")
+async def stash_capture(request: Request) -> dict:
+    payload = await request.json()
+    text = (payload.get("text") or "").strip()
+    if not text:
+        raise HTTPException(400, "nothing to stash")
+    from .skills import stash
+    return stash.capture_text(text)
+
+
+@app.post("/api/stash/{item_id}/answer")
+async def stash_answer(item_id: int, request: Request) -> dict:
+    payload = await request.json()
+    from .skills import stash
+    return stash.answer(item_id, payload.get("note", ""))
+
+
+@app.post("/api/stash/{item_id}/kind")
+async def stash_set_kind(item_id: int, request: Request) -> dict:
+    payload = await request.json()
+    from .skills import stash
+    return stash.set_kind(item_id, payload.get("kind", ""), payload.get("topic"))
+
+
+@app.post("/api/stash/{item_id}/tried")
+async def stash_tried(item_id: int, request: Request) -> dict:
+    payload = await request.json()
+    from .skills import stash
+    return stash.mark_tried(item_id, payload.get("verdict", ""))
+
+
+@app.post("/api/stash/{item_id}/archive")
+def stash_archive(item_id: int) -> dict:
+    from .skills import stash
+    return stash.archive(item_id)
+
+
+@app.post("/api/stash/proposals/{proposal_id}/accept")
+def stash_accept(proposal_id: int) -> dict:
+    from .skills import stash
+    return stash.accept_proposal(proposal_id)
+
+
+@app.post("/api/stash/proposals/{proposal_id}/reject")
+def stash_reject(proposal_id: int) -> dict:
+    from .skills import stash
+    return stash.reject_proposal(proposal_id)
+
+
+@app.post("/api/stash/organize")
+def stash_organize() -> dict:
+    """Run the split sweep now instead of waiting for the hourly job."""
+    from .skills import stash
+    return stash.sweep_splits()
 
 
 # ── Actions ──────────────────────────────────────────────────────────

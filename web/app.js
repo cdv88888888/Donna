@@ -4,7 +4,7 @@ const api = (path, opts) => fetch(path, opts).then((r) => r.json());
 const esc = (s) => (s || "").replace(/[&<>"]/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-const SRC_ICON = { gmail: "✉", telegram: "✈", calendar: "◷", system: "•" };
+const SRC_ICON = { gmail: "✉", telegram: "✈", calendar: "◷", monday: "⬡", web: "⌘", system: "•" };
 
 // ── Theme toggle (stamps data-theme so it beats the media query both ways) ──
 $("theme").onclick = () => {
@@ -201,14 +201,16 @@ async function sendCmd() {
 let currentView = "today";
 async function refresh() {
   if (currentView === "projects") return renderProjects();
+  if (currentView === "stash") return renderStash();
   render(await api("/api/state"));
 }
 
 // ── Projects view ──
 function switchView(v) {
   currentView = v;
-  document.getElementById("tabToday").classList.toggle("on", v === "today");
-  document.getElementById("tabProjects").classList.toggle("on", v === "projects");
+  for (const [tab, name] of [["tabToday", "today"], ["tabProjects", "projects"], ["tabStash", "stash"]]) {
+    document.getElementById(tab).classList.toggle("on", v === name);
+  }
   const show = v === "today" ? "" : "none";
   $("greet").style.display = show;
   $("thesis").style.display = show;
@@ -258,6 +260,180 @@ async function dismissProject(id) {
 }
 window.switchView = switchView;
 window.dismissProject = dismissProject;
+
+// ── Stash view ──
+// Where forwarded posts land. Four fixed buckets; topic folders inside them;
+// sub-folders only ever appear after you accept a split Donna proposed.
+const KINDS = { tool: "Tools to try", inspo: "Inspo", idea: "Ideas", read: "Read later" };
+
+function stashItem(it) {
+  const link = it.url
+    ? `<a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>`
+    : esc(it.title);
+  const desc = [it.summary, it.why].filter(Boolean).map(esc).join(" · ");
+  const tried = it.kind === "tool"
+    ? `<button class="mini" onclick="markTried(${it.id})">Tried it</button>` : "";
+  return `<div class="sitem">
+    <span class="plat">${esc(it.platform || "web")}</span>
+    <div class="b">
+      <div class="h">${link}</div>
+      ${desc ? `<div class="d">${desc}</div>` : ""}
+      ${it.note ? `<div class="d">Your note: ${esc(it.note)}</div>` : ""}
+      <div class="acts">
+        ${tried}
+        <button class="mini" onclick="archiveStash(${it.id})">Archive</button>
+      </div>
+    </div>
+    <span class="w">${esc(it.when || "")}</span>
+  </div>`;
+}
+
+function askCard(it) {
+  const kinds = Object.entries(KINDS).map(([k, label]) =>
+    `<button class="kbtn" onclick="setKind(${it.id}, '${k}')">${label}</button>`).join("");
+  return `<div class="ask">
+    <p class="q">${esc(it.question || "What is this one?")}</p>
+    <div class="src">${esc(it.url || (it.raw || "").slice(0, 160))}</div>
+    <div class="row">
+      <input id="ans${it.id}" placeholder="One line — what is it?"
+             onkeydown="if(event.key==='Enter')answerStash(${it.id})">
+      <button class="btn primary" onclick="answerStash(${it.id})">File it</button>
+    </div>
+    <div class="kinds"><span style="font-size:12px;color:var(--ink-faint);align-self:center;margin-right:2px;">or drop it straight into:</span>${kinds}</div>
+  </div>`;
+}
+
+function splitCard(p) {
+  return `<div class="split">
+    <div class="t">Split <b>${esc(p.parent)}</b> → <b>${esc(p.name)}</b>?</div>
+    <div class="r">${esc(p.rationale || "")} · ${p.count} items would move.</div>
+    <div class="actions">
+      <button class="btn primary" onclick="acceptSplit(${p.id})">Split it</button>
+      <button class="btn ghost" onclick="rejectSplit(${p.id})">Keep as is</button>
+    </div>
+  </div>`;
+}
+
+function topicBlock(t) {
+  const subs = t.subs.filter((sub) => sub.items.length).map((sub) =>
+    `<div class="sub"><div class="n">${esc(sub.name)}</div>
+     ${sub.items.map(stashItem).join("")}</div>`).join("");
+  const total = t.items.length + t.subs.reduce((n, sub) => n + sub.items.length, 0);
+  return `<div class="topic">
+    <div class="thead"><span class="n">${esc(t.name)}</span><span class="c">${total}</span></div>
+    ${t.items.map(stashItem).join("")}
+    ${subs}
+  </div>`;
+}
+
+async function renderStash() {
+  const st = await api("/api/stash");
+  const c = st.counts;
+  let html = `<div class="paste">
+      <input id="pasteUrl" placeholder="Paste a link…" onkeydown="if(event.key==='Enter')captureStash()">
+      <button class="btn primary" onclick="captureStash()">Stash</button>
+    </div>
+    <p class="phead"><b>${c.filed} saved</b>${c.asking ? ` · <span class="r">${c.asking} need${c.asking === 1 ? "s" : ""} a word from you</span>` : ""} · ${c.tools} to try · ${c.tried} judged
+      <button class="mini" style="margin-left:8px;" onclick="organizeStash(this)">Re-organize</button></p>`;
+
+  if (st.asking.length) {
+    html += label("Donna can't tell what these are", `${st.asking.length} waiting`);
+    html += `<div class="stack">${st.asking.map(askCard).join("")}</div>`;
+  }
+
+  if (st.proposals.length) {
+    html += label("Worth splitting?", `${st.proposals.length} proposed`);
+    html += `<div class="stack">${st.proposals.map(splitCard).join("")}</div>`;
+  }
+
+  let any = false;
+  for (const k of st.kinds) {
+    if (!k.topics.length) continue;
+    any = true;
+    const n = k.topics.reduce((a, t) =>
+      a + t.items.length + t.subs.reduce((b, s) => b + s.items.length, 0), 0);
+    html += label(k.label, `${n} item${n === 1 ? "" : "s"}`);
+    html += `<div class="kblurb">${esc(k.blurb)}</div>`;
+    html += k.topics.map(topicBlock).join("");
+  }
+
+  if (!any && !st.asking.length) {
+    html += `<div class="empty">Nothing stashed yet. Share a post to your Telegram
+      Saved Messages and Donna will file it — she'll reply there telling you where it went.</div>`;
+  }
+
+  if (st.tried.length) {
+    html += label("Already judged", `${st.tried.length}`);
+    html += `<details class="handled"><summary>Things you've tried — so you never
+      evaluate the same tool twice</summary><div class="body">` +
+      st.tried.map((t) => `<div>${esc(t.title)} — ${esc(t.verdict || "no verdict")}</div>`).join("") +
+      `</div></details>`;
+  }
+
+  $("sections").innerHTML = html;
+}
+
+async function captureStash() {
+  const input = $("pasteUrl");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  $("reply").textContent = "Donna is reading it…";
+  const res = await api("/api/stash/capture", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  $("reply").textContent = res.reply || "Stashed.";
+  renderStash();
+}
+
+async function answerStash(id) {
+  const note = $("ans" + id).value.trim();
+  if (!note) return;
+  $("reply").textContent = "Filing it…";
+  const res = await api(`/api/stash/${id}/answer`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ note }),
+  });
+  $("reply").textContent = res.reply || "";
+  renderStash();
+}
+
+// Whatever you typed doubles as the folder name, so "Meta ads" + tapping Inspo
+// files it straight into an Inspo › Meta Ads folder.
+async function setKind(id, kind) {
+  const field = $("ans" + id);
+  const topic = field ? field.value.trim() : "";
+  await api(`/api/stash/${id}/kind`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind, topic }),
+  });
+  renderStash();
+}
+
+async function markTried(id) {
+  const verdict = prompt("How was it? One line — 'good, using it' / 'meh'.");
+  if (verdict === null) return;
+  await api(`/api/stash/${id}/tried`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ verdict }),
+  });
+  renderStash();
+}
+
+async function archiveStash(id) { await api(`/api/stash/${id}/archive`, { method: "POST" }); renderStash(); }
+async function acceptSplit(id) { await api(`/api/stash/proposals/${id}/accept`, { method: "POST" }); renderStash(); }
+async function rejectSplit(id) { await api(`/api/stash/proposals/${id}/reject`, { method: "POST" }); renderStash(); }
+async function organizeStash(el) {
+  el.textContent = "Looking…";
+  const res = await api("/api/stash/organize", { method: "POST" });
+  $("reply").textContent = res.proposed
+    ? `${res.proposed} split(s) to look at.` : "Nothing worth splitting yet.";
+  renderStash();
+}
+
+Object.assign(window, { captureStash, answerStash, setKind, markTried, archiveStash,
+                        acceptSplit, rejectSplit, organizeStash });
 
 // ── PWA: service worker + push registration ──
 async function setupPush() {

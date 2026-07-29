@@ -11,6 +11,9 @@ Every section of the dashboard is backed by one of these tables:
   Watermark   -> polling bookmarks so we never re-process mail
   PushSub     -> web-push subscriptions for phone notifications
   Setting     -> runtime toggles (autonomy mode, etc.)
+  Bucket      -> "Stash" folders (a topic, and the angles split out of it)
+  StashItem   -> one forwarded post, filed into a bucket
+  BucketProposal -> a split Donna wants to make, awaiting your yes/no
 """
 from __future__ import annotations
 
@@ -24,6 +27,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -57,6 +61,7 @@ class Source(str, enum.Enum):
     telegram = "telegram"
     calendar = "calendar"
     monday = "monday"
+    web = "web"          # pasted straight into the dashboard
     system = "system"
 
 
@@ -87,6 +92,22 @@ class ProjectStatus(str, enum.Enum):
     needs_you = "needs_you"   # has an open decision or deadline risk
     stalled = "stalled"       # quiet past the threshold
     on_track = "on_track"     # moving, nothing needed from you
+
+
+class StashKind(str, enum.Enum):
+    """The four top-level buckets a forwarded post can land in."""
+    tool = "tool"          # something to go and try — the only kind that makes a to-do
+    inspo = "inspo"        # content & creative worth stealing from
+    idea = "idea"          # a business thought to chew on
+    read = "read"          # long post / thread / video for later
+    unsorted = "unsorted"  # Donna couldn't tell; she'll ask you for one line
+
+
+class StashStatus(str, enum.Enum):
+    filed = "filed"        # classified and sitting in its bucket
+    asking = "asking"      # Donna needs a line from you before she can file it
+    tried = "tried"        # you gave a verdict — archived, still searchable
+    archived = "archived"
 
 
 # ── Models ───────────────────────────────────────────────────────────
@@ -256,6 +277,71 @@ class ProjectItem(Base):
     when: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     project: Mapped[Project] = relationship(back_populates="members")
+
+
+# ── Stash: forwarded posts, filed into buckets ───────────────────────
+class Bucket(Base):
+    """A folder in the stash.
+
+    Two levels, deliberately. A top-level bucket is a *topic* ("Claude Code");
+    a child is an *angle* Donna split out of it once enough items shared one
+    ("Claude Code for Meta"). Deeper than that and it stops being findable.
+    """
+    __tablename__ = "buckets"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[StashKind] = mapped_column(Enum(StashKind), default=StashKind.tool)
+    name: Mapped[str] = mapped_column(String(160))
+    parent_id: Mapped[Optional[int]] = mapped_column(ForeignKey("buckets.id"))
+    created_by: Mapped[str] = mapped_column(String(20), default="donna")  # donna | you
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    children: Mapped[list["Bucket"]] = relationship(
+        back_populates="parent", cascade="all, delete-orphan"
+    )
+    parent: Mapped[Optional["Bucket"]] = relationship(
+        back_populates="children", remote_side="Bucket.id"
+    )
+
+
+class StashItem(Base):
+    """One thing the owner forwarded — usually a social post — plus what Donna
+    made of it. `raw_text` keeps exactly what arrived, because on Instagram and
+    Facebook the link alone is often all there is."""
+    __tablename__ = "stash_items"
+    __table_args__ = (UniqueConstraint("source", "external_id", name="uq_stash_src_ext"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[Source] = mapped_column(Enum(Source), default=Source.telegram)
+    external_id: Mapped[str] = mapped_column(String(256))
+    url: Mapped[Optional[str]] = mapped_column(String(1000))
+    platform: Mapped[Optional[str]] = mapped_column(String(40))  # instagram | x | youtube | …
+    title: Mapped[Optional[str]] = mapped_column(String(300))
+    summary: Mapped[Optional[str]] = mapped_column(Text)   # one line: what it is
+    why: Mapped[Optional[str]] = mapped_column(Text)       # one line: why you kept it
+    raw_text: Mapped[Optional[str]] = mapped_column(Text)  # exactly what you forwarded
+    note: Mapped[Optional[str]] = mapped_column(String(500))     # your one-liner, if she asked
+    question: Mapped[Optional[str]] = mapped_column(String(300))  # what she wants to know
+    kind: Mapped[StashKind] = mapped_column(Enum(StashKind), default=StashKind.unsorted)
+    bucket_id: Mapped[Optional[int]] = mapped_column(ForeignKey("buckets.id"))
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    status: Mapped[StashStatus] = mapped_column(Enum(StashStatus), default=StashStatus.filed)
+    verdict: Mapped[Optional[str]] = mapped_column(String(500))  # "good, using it" / "meh"
+    task_id: Mapped[Optional[int]] = mapped_column(ForeignKey("tasks.id"))  # the "try it" to-do
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    decided_at: Mapped[Optional[dt.datetime]] = mapped_column(DateTime(timezone=True))
+
+
+class BucketProposal(Base):
+    """Donna wants to split a topic because 3+ items in it share one angle.
+    Nothing moves until you tap yes."""
+    __tablename__ = "bucket_proposals"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bucket_id: Mapped[int] = mapped_column(ForeignKey("buckets.id"))  # the topic to split
+    name: Mapped[str] = mapped_column(String(160))                    # proposed child name
+    rationale: Mapped[Optional[str]] = mapped_column(String(400))
+    item_ids: Mapped[list] = mapped_column(JSON, default=list)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending|accepted|rejected
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 # ── Engine / session ─────────────────────────────────────────────────

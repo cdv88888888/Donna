@@ -44,8 +44,10 @@ async def _start_background() -> None:
     # Live Telegram listener
     if settings.telegram_session:
         try:
+            import asyncio
+
             from .integrations import telegram_user
-            from .skills import ingest
+            from .skills import ingest, stash
             from .notify import push_if_urgent
 
             async def _on_dm(msg) -> None:
@@ -53,11 +55,22 @@ async def _start_background() -> None:
                 if result.get("needs_you") and result.get("priority") in ("urgent", "high"):
                     push_if_urgent(f"Telegram: {msg.sender_name}", msg.text[:80])
 
+            async def _on_saved(msg) -> None:
+                # Anything the owner drops in Saved Messages is a stash capture.
+                # Classification is a blocking API call, so it goes to a thread
+                # rather than stalling the listener.
+                result = await asyncio.to_thread(stash.capture_telegram, msg)
+                if result.get("reply"):
+                    # Donna answers in the same chat — that's what makes
+                    # "forward → get asked → reply" one continuous exchange.
+                    await telegram_user.send_message(msg.chat_id, result["reply"])
+
             client = telegram_user.get_client()
             telegram_user.on_new_dm(_on_dm)
+            telegram_user.on_saved_message(_on_saved)
             await client.connect()
             app.state.telegram = client
-            log.info("Telegram listener connected.")
+            log.info("Telegram listener connected (DMs + Saved Messages).")
         except Exception:
             log.exception("Telegram listener failed to start (continuing without it).")
     else:

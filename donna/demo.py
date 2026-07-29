@@ -7,6 +7,8 @@ import datetime as dt
 
 from .db import (
     ActionLog,
+    Bucket,
+    BucketProposal,
     Contact,
     Draft,
     DraftStatus,
@@ -18,6 +20,9 @@ from .db import (
     ProjectItem,
     ProjectStatus,
     Source,
+    StashItem,
+    StashKind,
+    StashStatus,
     Task,
     session_scope,
     utcnow,
@@ -106,11 +111,16 @@ def seed_demo() -> None:
                      thread_id="f3", last_activity=now - dt.timedelta(days=2)),
         ])
 
-        s.add_all([
+        tasks = [
             Task(text="Review and sign the ABC Trading contract", created_by="donna"),
             Task(text="Call the accountant about the Q2 filing", created_by="you"),
             Task(text="Approve the payroll run", created_by="you", done=True),
-        ])
+            Task(text="Try Claude Code on the MGC ERP repo", created_by="donna"),
+            Task(text="Try the Meta ads MCP server on one live campaign", created_by="donna"),
+            Task(text="Try Higgsfield for a 15s LPG delivery ad", created_by="donna"),
+        ]
+        s.add_all(tasks)
+        s.flush()
 
         s.add_all([
             ActionLog(summary="Archived 6 low-priority emails (receipts, newsletters)",
@@ -182,3 +192,106 @@ def seed_demo() -> None:
             ProjectItem(project_id=p6.id, source=Source.monday, external_id="board:demo",
                         label="CDV Check Request board"),
         ])
+
+        # ── Stash (forwarded posts) ──────────────────────────────────
+        # Three tools under one topic, which is exactly the shape that earns a
+        # sub-folder proposal — so the split flow is visible on first run.
+        b_cc = Bucket(kind=StashKind.tool, name="Claude Code")
+        b_video = Bucket(kind=StashKind.tool, name="AI Video")
+        b_hooks = Bucket(kind=StashKind.inspo, name="Short-Form Hooks")
+        b_lpg = Bucket(kind=StashKind.idea, name="LPG Retail")
+        b_read = Bucket(kind=StashKind.read, name="Long Reads")
+        s.add_all([b_cc, b_video, b_hooks, b_lpg, b_read])
+        s.flush()
+
+        def stash(ext, title, kind, bucket, summary, why=None, platform="instagram",
+                  url=None, hours=3, task=None, note=None):
+            return StashItem(
+                source=Source.telegram, external_id=ext,
+                url=url or f"https://www.instagram.com/reel/{ext}/",
+                platform=platform, title=title, summary=summary, why=why,
+                raw_text=f"{title} — {summary}", note=note,
+                kind=kind, bucket_id=bucket.id, confidence=0.82,
+                status=StashStatus.filed, task_id=(task.id if task else None),
+                created_at=now - dt.timedelta(hours=hours),
+            )
+
+        st1 = stash("saved-101", "Claude Code running a whole repo migration",
+                    StashKind.tool, b_cc,
+                    "A dev shows Claude Code refactoring a legacy codebase end to end.",
+                    why="You've been meaning to point it at the ERP.",
+                    platform="x", url="https://x.com/demo/status/101",
+                    hours=4, task=tasks[3])
+        st2 = stash("saved-102", "Claude Code + Meta Ads MCP",
+                    StashKind.tool, b_cc,
+                    "Wiring the Meta marketing API into Claude Code as an MCP server.",
+                    why="Directly useful for the Masagana ad account.",
+                    platform="youtube", url="https://youtu.be/demo102",
+                    hours=9, task=tasks[4])
+        st3 = stash("saved-103", "Auto-generating Meta ad variants from one brief",
+                    StashKind.tool, b_cc,
+                    "Claude Code scripted against the Meta ads library to spin 40 variants.",
+                    platform="linkedin", url="https://www.linkedin.com/posts/demo103",
+                    hours=26)
+        st3b = stash("saved-111", "Claude Code hooks for a pre-commit reviewer",
+                     StashKind.tool, b_cc,
+                     "Wires a review pass into the commit hook — nothing to do with ads.",
+                     platform="x", url="https://x.com/demo/status/111", hours=33)
+        st4 = stash("saved-104", "Higgsfield product-video workflow",
+                    StashKind.tool, b_video,
+                    "Turns a single product photo into a 15-second ad.",
+                    why="Cheap way to test LPG delivery creative.",
+                    platform="tiktok", url="https://www.tiktok.com/@demo/video/104",
+                    hours=30, task=tasks[5])
+        st5 = stash("saved-105", "The 3-second problem-first hook",
+                    StashKind.inspo, b_hooks,
+                    "Opens on the failure state, names the cost, then the product.",
+                    platform="instagram", hours=52)
+        st6 = stash("saved-106", "Text-on-screen pacing for silent autoplay",
+                    StashKind.inspo, b_hooks,
+                    "One idea per 1.2s, no narration needed.",
+                    platform="instagram", hours=70)
+        st7 = stash("saved-107", "Competitor doing same-day LPG delivery tracking",
+                    StashKind.idea, b_lpg,
+                    "A rival is exposing live delivery ETA to customers by SMS.",
+                    why="Worth costing out against our dispatch flow.",
+                    platform="facebook", url="https://www.facebook.com/demo/posts/107",
+                    hours=20)
+        st8 = stash("saved-108", "Why most ERP rollouts stall in year two",
+                    StashKind.read, b_read,
+                    "Long thread on change management, not software.",
+                    platform="x", url="https://x.com/demo/status/108", hours=44)
+        s.add_all([st1, st2, st3, st3b, st4, st5, st6, st7, st8])
+        s.flush()
+
+        # One she genuinely couldn't read — the Instagram permalink problem.
+        s.add(StashItem(
+            source=Source.telegram, external_id="saved-109",
+            url="https://www.instagram.com/reel/C8xK2pQrS9v/",
+            platform="instagram", title="Instagram reel",
+            raw_text="https://www.instagram.com/reel/C8xK2pQrS9v/",
+            kind=StashKind.unsorted, confidence=0.0, status=StashStatus.asking,
+            question="Nothing readable on this one — a tool to try, or inspo?",
+            created_at=now - dt.timedelta(minutes=25),
+        ))
+
+        # One already judged, so "Already judged" isn't empty.
+        s.add(StashItem(
+            source=Source.telegram, external_id="saved-110",
+            url="https://www.producthunt.com/demo110", platform="web",
+            title="Yet another AI notetaker", summary="Meeting transcription with actions.",
+            raw_text="notetaker", kind=StashKind.tool, bucket_id=b_video.id,
+            confidence=0.9, status=StashStatus.tried,
+            verdict="Meh — Otter already does this and we pay for it.",
+            created_at=now - dt.timedelta(days=6),
+            decided_at=now - dt.timedelta(days=4),
+        ))
+
+        s.add(BucketProposal(
+            bucket_id=b_cc.id, name="Claude Code for Meta",
+            rationale="Three of these are specifically about driving Meta ad accounts.",
+            item_ids=[st2.id, st3.id, st1.id], status="pending",
+        ))
+
+        s.add(ActionLog(summary="Stashed “Claude Code + Meta Ads MCP” → Tools to try › Claude Code",
+                        source=Source.telegram))

@@ -1,12 +1,15 @@
 """The proactive loops — what makes Donna *proactive* rather than reactive.
 
-APScheduler runs four jobs:
+APScheduler runs these jobs:
   - inbox sweep         every INBOX_POLL_MINUTES
   - follow-up refresh   hourly
   - conflict scan       hourly
+  - project upkeep      hourly
+  - stash split sweep   hourly — proposes sub-folders once a topic fills up
   - morning brief       once daily at BRIEF_TIME (owner timezone)
 
-Plus a live Telethon handler for incoming Telegram DMs (real-time triage).
+Plus live Telethon handlers for incoming Telegram DMs (real-time triage) and
+Saved Messages (the stash).
 This module is started by main.py.
 """
 from __future__ import annotations
@@ -56,6 +59,16 @@ def _run_projects() -> None:
         log.exception("project status upkeep failed")
 
 
+def _run_stash() -> None:
+    from .skills import stash
+    try:
+        summary = stash.sweep_splits()
+        if summary.get("proposed"):
+            log.info("stash: proposed %s sub-folder split(s)", summary["proposed"])
+    except Exception:
+        log.exception("stash split sweep failed")
+
+
 def _run_brief() -> None:
     from .skills import brief
     try:
@@ -72,6 +85,7 @@ def build_scheduler() -> AsyncIOScheduler:
     sched.add_job(_run_followups, IntervalTrigger(hours=1), id="followups")
     sched.add_job(_run_conflicts, IntervalTrigger(hours=1), id="conflicts")
     sched.add_job(_run_projects, IntervalTrigger(hours=1), id="projects")
+    sched.add_job(_run_stash, IntervalTrigger(hours=1), id="stash")
     hour, minute = settings.brief_hour_minute
     sched.add_job(_run_brief, CronTrigger(hour=hour, minute=minute), id="brief")
     return sched

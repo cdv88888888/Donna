@@ -76,6 +76,11 @@ send on your behalf after approval.
 > The session string can act as your Telegram account. Treat it like a password —
 > it only ever belongs in the secret, never in git.
 
+The same login is what powers the **Stash**: once she's connected, anything you
+drop in your own **Saved Messages** gets filed. Nothing extra to set up — share
+a post from Instagram, Facebook, TikTok or X to Telegram → yourself, and Donna
+replies in that chat telling you where she put it.
+
 ---
 
 ## 4. Phone push notifications
