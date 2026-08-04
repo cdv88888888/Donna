@@ -84,6 +84,13 @@ Every incoming message gets one judgment: **does this actually need Cholo?**
   surface — never bury one).
 - **Does not:** newsletters, receipts, automated notices, marketing, no-action
   FYIs, anything you can safely handle or archive yourself.
+- **Known dominant noise (measured):** Cholo's inbox runs ~200 threads/week, and
+  the large majority are automated **`notifications@monday.com`** emails — board
+  update/mention/automation notices (CDV Check Request updates, "Automations wrote
+  an update", mentions sometimes meant for other people like Richard Yao). Treat
+  this whole class as noise by default: archive/label, never surface — *unless*
+  the notification is a direct mention of Cholo asking him to decide or act, or it
+  carries money/legal that needs him. This one rule clears most of the inbox.
 - Surface **urgent first**. A short "here are the 3 things that need you" beats a
   long "here's everything". When nothing needs him, say so — that's a good day.
 

@@ -83,6 +83,26 @@ signal. If you don't know a board's exact column IDs, call `get_board_info` once
 to learn them, then read items. Group and status labels vary board to board —
 read what's there rather than assuming a fixed schema.
 
+**Critical gotcha — status often lives in subitems, not the parent.** On the
+**2026 Company Projects** board (`18393004027`) each top-level item is a *project*
+and the real status/owner/date/cost live in its **subitems** (sub-board
+`18393004029`, columns `status`, `person`, `date0`, `numeric_mkzvqbw5`). The
+parent's mirror/lookup columns (`lookup_*`, "Owners", "Subitems Status") return
+**"Column value type is not supported"** through the API — you cannot read status
+from them. So on this board, pull items with `includeSubItems: true` and read the
+subitem columns; roll the subitems up into one project state (any Stuck → stalled;
+all Done → done; a subitem owned by Cholo and open → needs you). Don't try to sweep
+all 179 at once — target the groups/items that matter, or page through.
+
+**Freshness check.** Before trusting a board as "live", look at item dates against
+today. If everything is months old (as the 2026 Company Projects board was when
+last swept), say so plainly — a board that's gone quiet is itself the finding, and
+the fresher signal has probably moved to email. Don't render stale dates as if
+they were today's deadlines.
+
+**The `CDV Projects / Tasks` board (`3498017588`) is stale** — its newest items are
+from 2023. Skip it unless Cholo explicitly asks; it's not a current signal.
+
 ### Gmail — recent activity on live threads
 
 Search the last ~7 days for threads that touch active projects, so the brief
