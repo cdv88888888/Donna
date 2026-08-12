@@ -11,24 +11,25 @@
   :root[data-theme="dark"]{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:680px;margin:0 auto;padding:40px 22px 60px;}
-  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;}
+  .wrap{max-width:680px;margin:0 auto;padding:56px 26px 90px;}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:52px;}
   .brand{display:flex;align-items:center;gap:10px;}
   .brand .mark{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:var(--paper);font-family:var(--serif);font-weight:700;font-size:17px;}
   .brand .name{font-family:var(--serif);font-size:19px;font-weight:600;}
   .theme-btn{border:1px solid var(--line);background:transparent;color:var(--ink-faint);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);}
-  .greet{font-family:var(--serif);font-size:34px;line-height:1.15;letter-spacing:-.01em;text-wrap:balance;margin:0 0 14px;}
-  .thesis{font-family:var(--serif);font-size:19px;color:var(--ink-soft);max-width:34ch;margin:0;}
+  .greet{font-family:var(--sans);font-size:29px;font-weight:400;line-height:1.2;letter-spacing:-.02em;color:var(--ink-soft);text-wrap:balance;margin:0 0 16px;}
+  .greet b{color:var(--ink);font-weight:600;}
+  .thesis{font-family:var(--sans);font-size:17px;font-weight:400;color:var(--ink-soft);max-width:36ch;margin:0;line-height:1.5;}
   .thesis b{color:var(--ink);font-weight:600;} .thesis .num{color:var(--brass-deep);font-weight:700;font-variant-numeric:tabular-nums;}
   .nav{display:flex;gap:6px;margin:0 0 24px;}
   .nav a{flex:1;text-align:center;text-decoration:none;font-size:13.5px;font-weight:600;color:var(--ink-soft);padding:9px;border-radius:10px;border:1px solid var(--line);}
   .nav a.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-  .label{display:flex;align-items:center;gap:12px;margin:44px 0 16px;}
+  .label{display:flex;align-items:center;gap:12px;margin:60px 0 20px;}
   .label span{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
   .label .rule{flex:1;height:1px;background:var(--line);}
   .label .count{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
-  .stack{display:flex;flex-direction:column;gap:18px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 22px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
+  .stack{display:flex;flex-direction:column;gap:22px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px 26px 22px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
   .card:active{cursor:grabbing;}
   .card .meta{display:flex;align-items:center;gap:8px;margin-bottom:11px;flex-wrap:wrap;}
   .chip{font-size:11px;font-weight:500;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 5%,transparent);color:var(--ink-faint);}
@@ -99,11 +100,11 @@
   <div class="stack" id="stack">
 
     <div class="card urgent" data-id="ana">
-      <div class="meta"><span class="chip pri">urgent</span><span class="chip src">✉ gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
+      <div class="meta"><span class="chip pri">urgent</span><span class="chip src">gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
       <h3>Invoice #4471 is 12 days late</h3>
       <div class="gist">
-        <div class="row"><span class="ic">📩</span><span class="tx">No firm payment date — it's stuck in their approval queue while finance is out. Asks if it delays the <b>next shipment</b>.</span></div>
-        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> ask Ana to confirm the payment date; offer to resend the invoice.</span></div>
+        <div class="row"><span class="tx">No firm payment date — it's stuck in their approval queue while finance is out. Asks if it delays the <b>next shipment</b>.</span></div>
+        <div class="row reply"><span class="tx"><b>Donna's reply:</b> ask Ana to confirm the payment date; offer to resend the invoice.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
       <div class="details" hidden>
@@ -116,11 +117,11 @@
     </div>
 
     <div class="card high" data-id="marco">
-      <div class="meta"><span class="chip pri">high</span><span class="chip src">✉ gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
+      <div class="meta"><span class="chip pri">high</span><span class="chip src">gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
       <h3>Re: Q3 supplier contract — revised terms attached</h3>
       <div class="gist">
-        <div class="row"><span class="ic">📩</span><span class="tx">Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51), July window kept. Wants your signature to lock the slot.</span></div>
-        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> approve the terms; ask for the signed PDF today to lock July.</span></div>
+        <div class="row"><span class="tx">Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51), July window kept. Wants your signature to lock the slot.</span></div>
+        <div class="row reply"><span class="tx"><b>Donna's reply:</b> approve the terms; ask for the signed PDF today to lock July.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
       <div class="details" hidden>
@@ -133,22 +134,22 @@
     </div>
 
     <div class="card high" data-id="cal">
-      <div class="meta"><span class="chip pri">high</span><span class="chip src">◷ calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
+      <div class="meta"><span class="chip pri">high</span><span class="chip src">calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
       <h3>3pm vendor call overlaps the board sync</h3>
       <div class="gist">
-        <div class="row"><span class="ic">◷</span><span class="tx">Thursday 3pm — vendor call and board sync collide. <b>4:30pm</b> is free for both.</span></div>
-        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna suggests:</b> move the vendor call to 4:30pm and send the reschedule note.</span></div>
+        <div class="row"><span class="tx">Thursday 3pm — vendor call and board sync collide. <b>4:30pm</b> is free for both.</span></div>
+        <div class="row reply"><span class="tx"><b>Donna suggests:</b> move the vendor call to 4:30pm and send the reschedule note.</span></div>
       </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
       <div class="hint">← Later · Approve →</div>
     </div>
 
     <div class="card" data-id="tita">
-      <div class="meta"><span class="chip src">✈ telegram</span><span class="who">Tita Cora</span><span class="when">8:04 PM</span></div>
+      <div class="meta"><span class="chip src">telegram</span><span class="who">Tita Cora</span><span class="when">8:04 PM</span></div>
       <h3>Sunday family lunch</h3>
       <div class="gist">
-        <div class="row"><span class="ic">📩</span><span class="tx">Lolo's celebration, <b>Sunday 12nn</b> at the house. Wants your yes so she can buy food.</span></div>
-        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> yes, there by 1pm; you'll bring dessert.</span></div>
+        <div class="row"><span class="tx">Lolo's celebration, <b>Sunday 12nn</b> at the house. Wants your yes so she can buy food.</span></div>
+        <div class="row reply"><span class="tx"><b>Donna's reply:</b> yes, there by 1pm; you'll bring dessert.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full message &amp; draft ▾</button>
       <div class="details" hidden>
