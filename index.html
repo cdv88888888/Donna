@@ -87,6 +87,8 @@
   .wdraft p{margin:0;font-family:var(--serif);font-size:14px;line-height:1.45;}
   .wactions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;}
   .wsent{font-size:13px;color:var(--good);font-weight:600;margin-top:11px;} .wsent::before{content:"✓ ";}
+  .ndsum{font-size:14px;color:var(--ink);line-height:1.42;margin:10px 0 0;} .ndsum b{color:var(--brass-deep);font-weight:600;}
+  .witem .disclose{margin:10px 0 0;} .witem .details{margin:9px 0 0;} .witem .wdraft{margin:0;}
   .slot{display:flex;gap:16px;padding:11px 4px;border-bottom:1px dashed var(--line);align-items:baseline;}
   .slot .t{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);width:64px;flex:none;}
   .slot .ev small{color:var(--good);font-weight:600;}
@@ -219,21 +221,33 @@
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span></div>
       <ul class="sum"><li>Sent renewal terms <b>6 days ago</b> — no reply.</li><li>Lease is up next month.</li></ul>
-      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Rina — just following up on the warehouse lease renewal terms I sent last week. Any thoughts? Happy to jump on a quick call if that's easier. Thanks!</p></div>
+      <div class="ndsum"><b>Donna's nudge:</b> gentle follow-up on the renewal terms; offers a quick call.</div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full nudge ▾</button>
+      <div class="details" hidden>
+        <div class="wdraft"><span class="tag">Full nudge · in your voice</span><p>Hi Rina — just following up on the warehouse lease renewal terms I sent last week. Any thoughts? Happy to jump on a quick call if that's easier. Thanks!</p></div>
+      </div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span></div>
       <ul class="sum"><li>Waiting on confirmation they got the <b>Q2 docs</b>.</li><li>Deadline <b>Jul 25</b>.</li></ul>
-      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi — just confirming you received the Q2 filing documents I sent over. Let me know if anything's missing so we stay ahead of the Jul 25 deadline. Thanks!</p></div>
+      <div class="ndsum"><b>Donna's nudge:</b> confirms receipt of the Q2 docs; flags the Jul 25 deadline.</div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full nudge ▾</button>
+      <div class="details" hidden>
+        <div class="wdraft"><span class="tag">Full nudge · in your voice</span><p>Hi — just confirming you received the Q2 filing documents I sent over. Let me know if anything's missing so we stay ahead of the Jul 25 deadline. Thanks!</p></div>
+      </div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span></div>
       <ul class="sum"><li>Waiting on the <b>Cebu route quote</b>.</li><li>Needed before pricing the launch.</li></ul>
-      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Kevin — checking in on the Cebu route quote. Any update on timing? I'd like to lock our pricing this week. Thanks!</p></div>
+      <div class="ndsum"><b>Donna's nudge:</b> checks in on the Cebu quote; asks for timing to lock pricing.</div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full nudge ▾</button>
+      <div class="details" hidden>
+        <div class="wdraft"><span class="tag">Full nudge · in your voice</span><p>Hi Kevin — checking in on the Cebu route quote. Any update on timing? I'd like to lock our pricing this week. Thanks!</p></div>
+      </div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
     </div>
@@ -368,6 +382,8 @@
   }
   function editNudge(btn){
     const item = btn.closest(".witem");
+    const det = item.querySelector(".details");
+    if(det && det.hidden){ det.hidden = false; const db = item.querySelector(".disclose"); if(db) db.innerHTML = db.innerHTML.replace("▾","▴"); }
     const p = item.querySelector(".wdraft p");
     const ta = document.createElement("textarea");
     ta.value = p.textContent;
