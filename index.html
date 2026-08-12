@@ -46,10 +46,11 @@
   .donna .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
   .donna p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.45;}
   .gist{display:flex;flex-direction:column;gap:9px;margin:2px 0 12px;}
-  .gist ul.sum{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;}
-  .gist ul.sum li{font-size:14px;color:var(--ink-soft);line-height:1.42;}
-  .gist ul.sum li::marker{color:var(--ink-faint);}
-  .gist ul.sum li b{color:var(--ink);font-weight:600;}
+  ul.sum{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;}
+  ul.sum li{font-size:14px;color:var(--ink-soft);line-height:1.42;}
+  ul.sum li::marker{color:var(--ink-faint);}
+  ul.sum li b{color:var(--ink);font-weight:600;}
+  .witem ul.sum{margin:10px 0 0;}
   .gist .row{display:flex;gap:10px;line-height:1.42;}
   .gist .row .ic{flex:none;font-size:13px;margin-top:2px;opacity:.85;}
   .gist .row .tx{font-size:14px;color:var(--ink-soft);}
@@ -217,21 +218,21 @@
   <div class="waiting">
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span></div>
-      <p class="wctx">You sent the renewal terms <b>6 days ago</b> — no reply since. Warehouse lease is up next month.</p>
+      <ul class="sum"><li>Sent renewal terms <b>6 days ago</b> — no reply.</li><li>Lease is up next month.</li></ul>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Rina — just following up on the warehouse lease renewal terms I sent last week. Any thoughts? Happy to jump on a quick call if that's easier. Thanks!</p></div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span></div>
-      <p class="wctx">Waiting on confirmation they received the <b>Q2 filing docs</b>. Deadline Jul 25.</p>
+      <ul class="sum"><li>Waiting on confirmation they got the <b>Q2 docs</b>.</li><li>Deadline <b>Jul 25</b>.</li></ul>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi — just confirming you received the Q2 filing documents I sent over. Let me know if anything's missing so we stay ahead of the Jul 25 deadline. Thanks!</p></div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span></div>
-      <p class="wctx">Waiting on the <b>Cebu route quote</b> — you need it before pricing the launch.</p>
+      <ul class="sum"><li>Waiting on the <b>Cebu route quote</b>.</li><li>Needed before pricing the launch.</li></ul>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Kevin — checking in on the Cebu route quote. Any update on timing? I'd like to lock our pricing this week. Thanks!</p></div>
       <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
       <div class="filebox" hidden></div>
