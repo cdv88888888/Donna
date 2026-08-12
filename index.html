@@ -46,6 +46,16 @@
   .donna{background:color-mix(in srgb,var(--brass) 8%,transparent);border:1px solid color-mix(in srgb,var(--brass) 22%,transparent);border-radius:10px;padding:11px 13px;margin-bottom:13px;}
   .donna .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
   .donna p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.45;}
+  .gist{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px;}
+  .gist .row{display:flex;gap:10px;line-height:1.42;}
+  .gist .row .ic{flex:none;font-size:13px;margin-top:2px;opacity:.85;}
+  .gist .row .tx{font-size:14px;color:var(--ink-soft);}
+  .gist .row .tx b{color:var(--ink);font-weight:600;}
+  .gist .row.reply .tx{color:var(--ink);}
+  .gist .row.reply .tx b{color:var(--brass-deep);}
+  .disclose{background:none;border:1px solid var(--line);color:var(--ink-faint);font-size:12px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:8px;font-family:var(--sans);margin:0 0 13px;}
+  .details[hidden]{display:none;}
+  .details{margin:0 0 13px;}
   .actions{display:flex;gap:8px;flex-wrap:wrap;}
   .btn{border:none;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);}
   .btn.primary{background:var(--ink);color:var(--paper);} .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
@@ -92,10 +102,16 @@
     <div class="card urgent" data-id="ana">
       <div class="meta"><span class="chip pri">● urgent</span><span class="chip src">✉ gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
       <h3>Invoice #4471 is 12 days late</h3>
-      <div class="incoming"><span class="tag">What you're replying to · Ana</span>
-        <p class="msg clamp" id="m-ana">Apologies for the delay. Invoice #4471 (due July 10) is stuck in our approval queue while our finance lead is on leave. I don't have a firm date. Will this hold up the next shipment?</p>
-        <button class="more" onclick="toggleMsg('m-ana',this)">Show full message</button></div>
-      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Hi Ana — just flagging invoice #4471 (due July 10) is still open. Could you confirm the payment date? Happy to resend the invoice if helpful. Thanks!</p></div>
+      <div class="gist">
+        <div class="row"><span class="ic">📩</span><span class="tx">No firm payment date — it's stuck in their approval queue while finance is out. Asks if it delays the <b>next shipment</b>.</span></div>
+        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> ask Ana to confirm the payment date; offer to resend the invoice.</span></div>
+      </div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
+      <div class="details" hidden>
+        <div class="incoming"><span class="tag">Ana's full message</span>
+          <p class="msg">Apologies for the delay. Invoice #4471 (due July 10) is stuck in our approval queue while our finance lead is on leave. I don't have a firm date. Will this hold up the next shipment?</p></div>
+        <div class="donna"><span class="tag">Full draft · in your voice</span><p>Hi Ana — just flagging invoice #4471 (due July 10) is still open. Could you confirm the payment date? Happy to resend the invoice if helpful. Thanks!</p></div>
+      </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
       <div class="hint">← Later · Approve →</div>
     </div>
@@ -103,10 +119,16 @@
     <div class="card high" data-id="marco">
       <div class="meta"><span class="chip pri">● high</span><span class="chip src">✉ gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
       <h3>Re: Q3 supplier contract — revised terms attached</h3>
-      <div class="incoming"><span class="tag">What you're replying to · Marco</span>
-        <p class="msg clamp" id="m-marco">Hi, Thanks for the call earlier. As agreed I've attached the revised Q3 contract. Changes: unit price ₱48.50 (from ₱51.00); July delivery window kept with a 3-day grace period. If these look good, can you sign and return so we can lock the July slot?</p>
-        <button class="more" onclick="toggleMsg('m-marco',this)">Show full message</button></div>
-      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Hi Marco — the revised terms look good on our end. Could you send the signed PDF today so we can lock the July delivery slot? Appreciate the quick turnaround.</p></div>
+      <div class="gist">
+        <div class="row"><span class="ic">📩</span><span class="tx">Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51), July window kept. Wants your signature to lock the slot.</span></div>
+        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> approve the terms; ask for the signed PDF today to lock July.</span></div>
+      </div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
+      <div class="details" hidden>
+        <div class="incoming"><span class="tag">Marco's full message</span>
+          <p class="msg">Hi, Thanks for the call earlier. As agreed I've attached the revised Q3 contract. Changes: unit price ₱48.50 (from ₱51.00); July delivery window kept with a 3-day grace period. If these look good, can you sign and return so we can lock the July slot?</p></div>
+        <div class="donna"><span class="tag">Full draft · in your voice</span><p>Hi Marco — the revised terms look good on our end. Could you send the signed PDF today so we can lock the July delivery slot? Appreciate the quick turnaround.</p></div>
+      </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
       <div class="hint">← Later · Approve →</div>
     </div>
@@ -114,9 +136,10 @@
     <div class="card high" data-id="cal">
       <div class="meta"><span class="chip pri">● high</span><span class="chip src">◷ calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
       <h3>3pm vendor call overlaps the board sync</h3>
-      <div class="incoming"><span class="tag">The conflict</span>
-        <p class="msg">Thursday 3:00pm: Vendor call AND Board sync overlap. 4:30pm is open for both parties.</p></div>
-      <div class="donna"><span class="tag">Donna suggests</span><p>Move the vendor call to 4:30 PM — both sides are free. I'll send the reschedule note.</p></div>
+      <div class="gist">
+        <div class="row"><span class="ic">◷</span><span class="tx">Thursday 3pm — vendor call and board sync collide. <b>4:30pm</b> is free for both.</span></div>
+        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna suggests:</b> move the vendor call to 4:30pm and send the reschedule note.</span></div>
+      </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
       <div class="hint">← Later · Approve →</div>
     </div>
@@ -124,10 +147,16 @@
     <div class="card" data-id="tita">
       <div class="meta"><span class="chip src">✈ telegram</span><span class="who">Tita Cora</span><span class="when">8:04 PM</span></div>
       <h3>Sunday family lunch</h3>
-      <div class="incoming"><span class="tag">What you're replying to · Tita Cora</span>
-        <p class="msg clamp" id="m-tita">Anak, pupunta ka ba sa Linggo? Handaan ni Lolo, 12nn sa bahay. Pakisagot na lang para makabili ako ng ulam. 🙏</p>
-        <button class="more" onclick="toggleMsg('m-tita',this)">Show full message</button></div>
-      <div class="donna"><span class="tag">Donna drafted a reply · in your voice</span><p>Opo Tita, andyan ako by 1pm. Ako na bahala sa dessert 🙏</p></div>
+      <div class="gist">
+        <div class="row"><span class="ic">📩</span><span class="tx">Lolo's celebration, <b>Sunday 12nn</b> at the house. Wants your yes so she can buy food.</span></div>
+        <div class="row reply"><span class="ic">✍</span><span class="tx"><b>Donna's reply:</b> yes, there by 1pm; you'll bring dessert.</span></div>
+      </div>
+      <button class="disclose" onclick="toggleDetails(this)">Show full message &amp; draft ▾</button>
+      <div class="details" hidden>
+        <div class="incoming"><span class="tag">Tita Cora's full message</span>
+          <p class="msg">Anak, pupunta ka ba sa Linggo? Handaan ni Lolo, 12nn sa bahay. Pakisagot na lang para makabili ako ng ulam. 🙏</p></div>
+        <div class="donna"><span class="tag">Full draft · in your voice</span><p>Opo Tita, andyan ako by 1pm. Ako na bahala sa dessert 🙏</p></div>
+      </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
       <div class="hint">← Later · Approve →</div>
     </div>
@@ -175,13 +204,17 @@
     const cur = root.getAttribute("data-theme") || (dark ? "dark" : "light");
     root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
   };
-  function toggleMsg(id, btn){
-    const p = document.getElementById(id);
-    const collapsed = p.classList.toggle("clamp");
-    btn.textContent = collapsed ? "Show full message" : "Show less";
+  function toggleDetails(btn){
+    const d = btn.parentElement.querySelector(".details");
+    const open = !d.hidden;
+    d.hidden = open;
+    btn.innerHTML = open ? btn.innerHTML.replace("▴","▾") : btn.innerHTML.replace("▾","▴");
   }
   function edit(btn){
-    const p = btn.closest(".card").querySelector(".donna p");
+    const card = btn.closest(".card");
+    const det = card.querySelector(".details");
+    if(det && det.hidden){ det.hidden = false; const db=card.querySelector(".disclose"); if(db) db.innerHTML=db.innerHTML.replace("▾","▴"); }
+    const p = card.querySelector(".donna p");
     const ta = document.createElement("textarea");
     ta.value = p.textContent;
     ta.style.cssText = "width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:14.5px;padding:8px;min-height:80px;";
