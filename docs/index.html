@@ -68,11 +68,17 @@
   .person .av{width:38px;height:38px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;font-family:var(--serif);font-size:16px;font-weight:600;color:var(--paper);background:var(--brass);}
   .person .nm{font-size:12.5px;font-weight:600;} .person .st{font-size:10.5px;color:var(--ink-faint);margin-top:3px;}
   .waiting,.timeline,.todos{display:flex;flex-direction:column;}
-  .wrow{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px dashed var(--line);}
-  .wrow .body{flex:1;min-width:0;} .wrow .body .p{font-size:14px;font-weight:600;} .wrow .body .s{font-size:12.5px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .witem{padding:15px 4px 16px;border-bottom:1px dashed var(--line);}
+  .wrow{display:flex;align-items:center;gap:12px;}
+  .wrow .body{flex:1;min-width:0;} .wrow .body .p{font-size:14.5px;font-weight:600;} .wrow .body .s{font-size:12.5px;color:var(--ink-faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .age{font-family:var(--mono);font-size:11.5px;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--brass) 14%,transparent);color:var(--brass-deep);}
   .age.old{background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
-  .nudge{border:1px solid var(--line);background:transparent;color:var(--ink-soft);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .wctx{font-size:13.5px;color:var(--ink-soft);line-height:1.45;margin:10px 0 0;} .wctx b{color:var(--ink);font-weight:600;}
+  .wdraft{background:color-mix(in srgb,var(--ink) 3.5%,transparent);border:1px solid var(--line);border-radius:12px;padding:10px 13px;margin:9px 0 0;}
+  .wdraft .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
+  .wdraft p{margin:0;font-family:var(--serif);font-size:14px;line-height:1.45;}
+  .wactions{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;}
+  .wsent{font-size:13px;color:var(--good);font-weight:600;margin-top:11px;} .wsent::before{content:"✓ ";}
   .slot{display:flex;gap:16px;padding:11px 4px;border-bottom:1px dashed var(--line);align-items:baseline;}
   .slot .t{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);width:64px;flex:none;}
   .slot .ev small{color:var(--good);font-weight:600;}
@@ -198,9 +204,24 @@
 
   <div class="label"><span>Waiting on a reply</span><div class="rule"></div><div class="count">3 threads</div></div>
   <div class="waiting">
-    <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
-    <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
-    <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
+    <div class="witem">
+      <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span></div>
+      <p class="wctx">You sent the renewal terms <b>6 days ago</b> — no reply since. Warehouse lease is up next month.</p>
+      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Rina — just following up on the warehouse lease renewal terms I sent last week. Any thoughts? Happy to jump on a quick call if that's easier. Thanks!</p></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+    </div>
+    <div class="witem">
+      <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span></div>
+      <p class="wctx">Waiting on confirmation they received the <b>Q2 filing docs</b>. Deadline Jul 25.</p>
+      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi — just confirming you received the Q2 filing documents I sent over. Let me know if anything's missing so we stay ahead of the Jul 25 deadline. Thanks!</p></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+    </div>
+    <div class="witem">
+      <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span></div>
+      <p class="wctx">Waiting on the <b>Cebu route quote</b> — you need it before pricing the launch.</p>
+      <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Kevin — checking in on the Cebu route quote. Any update on timing? I'd like to lock our pricing this week. Thanks!</p></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+    </div>
   </div>
 
   <div class="label"><span>Projects</span><div class="rule"></div><div class="count">6 active · 3 need you</div></div>
@@ -284,6 +305,23 @@
     const ta = document.createElement("textarea");
     ta.value = p.textContent;
     ta.style.cssText = "width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:14.5px;padding:8px;min-height:80px;";
+    p.replaceWith(ta); ta.focus();
+  }
+  function sendNudge(btn){
+    const item = btn.closest(".witem");
+    const actions = btn.closest(".wactions");
+    const sent = document.createElement("div");
+    sent.className = "wsent";
+    sent.textContent = "Nudge sent";
+    actions.replaceWith(sent);
+    const draft = item.querySelector(".wdraft"); if(draft) draft.style.opacity = ".55";
+  }
+  function editNudge(btn){
+    const item = btn.closest(".witem");
+    const p = item.querySelector(".wdraft p");
+    const ta = document.createElement("textarea");
+    ta.value = p.textContent;
+    ta.style.cssText = "width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:14px;padding:8px;min-height:76px;";
     p.replaceWith(ta); ta.focus();
   }
   function updateCount(){
