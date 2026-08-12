@@ -5,10 +5,10 @@
 <title>Donna — Today</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-  :root{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;--shadow:0 1px 2px rgba(30,43,43,.05),0 8px 24px rgba(30,43,43,.06);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
-  @media (prefers-color-scheme:dark){:root{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);}}
-  :root[data-theme="light"]{--paper:#F4F1EA;--card:#FBF9F4;--ink:#1E2B2B;--ink-soft:#46524E;--ink-faint:#7E877F;--line:#E1DBCE;--brass:#9C7A3C;--brass-deep:#7E6026;--urgent:#B24A38;--good:#3F7C5F;}
-  :root[data-theme="dark"]{--paper:#14201E;--card:#1B2725;--ink:#ECE7DB;--ink-soft:#B4BCB3;--ink-faint:#7C877E;--line:#2C3A37;--brass:#C9A45E;--brass-deep:#E0BE7A;--urgent:#D9705C;--good:#6BB08C;}
+  :root{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;--shadow:0 1px 2px rgba(28,28,22,.03),0 14px 34px rgba(28,28,22,.05);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+  @media (prefers-color-scheme:dark){:root{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;--shadow:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.4);}}
+  :root[data-theme="light"]{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;}
+  :root[data-theme="dark"]{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:680px;margin:0 auto;padding:40px 22px 60px;}
@@ -27,23 +27,22 @@
   .label span{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;}
   .label .rule{flex:1;height:1px;background:var(--line);}
   .label .count{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
-  .stack{display:flex;flex-direction:column;gap:14px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
+  .stack{display:flex;flex-direction:column;gap:18px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 22px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:opacity .18s,transform .18s;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;}
   .card:active{cursor:grabbing;}
-  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass);}
-  .card.urgent::before,.card.high::before{background:var(--urgent);}
-  .card .meta{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap;}
-  .chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;}
-  .chip.src{background:color-mix(in srgb,var(--brass) 15%,transparent);color:var(--brass-deep);}
-  .chip.pri{background:color-mix(in srgb,var(--urgent) 15%,transparent);color:var(--urgent);}
-  .card .who{font-weight:600;font-size:14.5px;} .card .when{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);margin-left:auto;}
-  .card h3{margin:2px 0 10px;font-size:16px;font-weight:600;line-height:1.3;}
+  .card .meta{display:flex;align-items:center;gap:8px;margin-bottom:11px;flex-wrap:wrap;}
+  .chip{font-size:11px;font-weight:500;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--ink) 5%,transparent);color:var(--ink-faint);}
+  .chip.pri{background:transparent;padding:3px 2px 3px 0;color:var(--ink-faint);font-weight:600;}
+  .chip.pri::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brass);margin-right:6px;vertical-align:middle;}
+  .card.urgent .chip.pri::before,.card.high .chip.pri::before{background:var(--urgent);}
+  .card .who{font-weight:600;font-size:14.5px;} .card .when{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-left:auto;}
+  .card h3{margin:3px 0 13px;font-size:16.5px;font-weight:600;line-height:1.32;letter-spacing:-.01em;}
   .incoming{border-left:2px solid var(--line);padding:1px 0 1px 12px;margin:0 0 13px;}
   .incoming .tag{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;display:block;margin-bottom:5px;}
   .incoming .msg{font-size:13.5px;color:var(--ink-soft);white-space:pre-wrap;margin:0;line-height:1.45;}
   .incoming .msg.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
   .incoming .more{background:none;border:none;color:var(--brass-deep);font-size:12px;font-weight:600;cursor:pointer;padding:5px 0 0;font-family:var(--sans);}
-  .donna{background:color-mix(in srgb,var(--brass) 8%,transparent);border:1px solid color-mix(in srgb,var(--brass) 22%,transparent);border-radius:10px;padding:11px 13px;margin-bottom:13px;}
+  .donna{background:color-mix(in srgb,var(--ink) 3.5%,transparent);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:13px;}
   .donna .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
   .donna p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.45;}
   .gist{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px;}
@@ -100,7 +99,7 @@
   <div class="stack" id="stack">
 
     <div class="card urgent" data-id="ana">
-      <div class="meta"><span class="chip pri">● urgent</span><span class="chip src">✉ gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
+      <div class="meta"><span class="chip pri">urgent</span><span class="chip src">✉ gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
       <h3>Invoice #4471 is 12 days late</h3>
       <div class="gist">
         <div class="row"><span class="ic">📩</span><span class="tx">No firm payment date — it's stuck in their approval queue while finance is out. Asks if it delays the <b>next shipment</b>.</span></div>
@@ -117,7 +116,7 @@
     </div>
 
     <div class="card high" data-id="marco">
-      <div class="meta"><span class="chip pri">● high</span><span class="chip src">✉ gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
+      <div class="meta"><span class="chip pri">high</span><span class="chip src">✉ gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
       <h3>Re: Q3 supplier contract — revised terms attached</h3>
       <div class="gist">
         <div class="row"><span class="ic">📩</span><span class="tx">Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51), July window kept. Wants your signature to lock the slot.</span></div>
@@ -134,7 +133,7 @@
     </div>
 
     <div class="card high" data-id="cal">
-      <div class="meta"><span class="chip pri">● high</span><span class="chip src">◷ calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
+      <div class="meta"><span class="chip pri">high</span><span class="chip src">◷ calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
       <h3>3pm vendor call overlaps the board sync</h3>
       <div class="gist">
         <div class="row"><span class="ic">◷</span><span class="tx">Thursday 3pm — vendor call and board sync collide. <b>4:30pm</b> is free for both.</span></div>
