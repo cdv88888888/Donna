@@ -5,10 +5,10 @@
 <title>Donna — Today</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-  :root{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;--shadow:0 1px 2px rgba(28,28,22,.03),0 14px 34px rgba(28,28,22,.05);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
-  @media (prefers-color-scheme:dark){:root{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;--shadow:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.4);}}
-  :root[data-theme="light"]{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;}
-  :root[data-theme="dark"]{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;}
+  :root{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;--amber:#B08A4A;--shadow:0 1px 2px rgba(28,28,22,.03),0 14px 34px rgba(28,28,22,.05);--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+  @media (prefers-color-scheme:dark){:root{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;--amber:#CBA35C;--shadow:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.4);}}
+  :root[data-theme="light"]{--paper:#ECEBE6;--card:#FBFAF8;--ink:#1B1B18;--ink-soft:#6C6C64;--ink-faint:#A2A199;--line:#E9E7E0;--brass:#8C8676;--brass-deep:#6E6A5E;--urgent:#BC8A5C;--good:#5DA87C;--amber:#B08A4A;}
+  :root[data-theme="dark"]{--paper:#1A1A18;--card:#232320;--ink:#EDECE6;--ink-soft:#A8A79E;--ink-faint:#75746C;--line:#302F2B;--brass:#B0AA98;--brass-deep:#C9C3B0;--urgent:#D2A473;--good:#78BE97;--amber:#CBA35C;}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:680px;margin:0 auto;padding:56px 26px 90px;}
@@ -82,6 +82,18 @@
   .handled summary::-webkit-details-marker{display:none;}
   .handled .body{padding:0 16px 14px 30px;display:flex;flex-direction:column;gap:9px;}
   .handled .body div{font-size:13px;color:var(--ink-faint);} .handled .body div::before{content:"✓ ";color:var(--good);font-weight:700;}
+  .projects{display:flex;flex-direction:column;gap:14px;}
+  .proj{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px 14px;}
+  .proj .ptop{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px;}
+  .state{font-size:11px;font-weight:600;color:var(--ink-faint);display:inline-flex;align-items:center;gap:6px;}
+  .state::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good);}
+  .proj.needs .state::before{background:var(--urgent);} .proj.stalled .state::before{background:var(--amber);}
+  .proj.needs .state{color:var(--urgent);} .proj.stalled .state{color:var(--amber);}
+  .proj .pmeta{font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+  .proj .pwhen{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-left:auto;}
+  .proj .pname{font-size:15.5px;font-weight:600;letter-spacing:-.01em;margin:0 0 7px;}
+  .proj .pnext{font-size:14px;color:var(--ink-soft);line-height:1.45;margin:0 0 9px;}
+  .proj .powes{font-size:12.5px;color:var(--ink-faint);} .proj .powes b{color:var(--ink-soft);font-weight:600;}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
   @media (max-width:520px){.greet{font-size:28px;}}
 </style>
@@ -175,6 +187,46 @@
     <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
     <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
     <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span><button class="nudge" onclick="this.textContent='Drafted'">Nudge</button></div>
+  </div>
+
+  <div class="label"><span>Projects</span><div class="rule"></div><div class="count">6 active · 3 need you</div></div>
+  <div class="projects">
+    <div class="proj needs">
+      <div class="ptop"><span class="state">Needs you</span><span class="pmeta">Monday · CDV Check Request</span><span class="pwhen">5h</span></div>
+      <div class="pname">CDV Check Requests</div>
+      <p class="pnext">3 requests sitting in the “Go” group waiting for your approval.</p>
+      <div class="powes"><b>You</b> · 3 pending approvals</div>
+    </div>
+    <div class="proj needs">
+      <div class="ptop"><span class="state">Needs you</span><span class="pmeta">gmail · telegram · calendar</span><span class="pwhen">2h</span></div>
+      <div class="pname">Q3 Supplier Contract — ABC Trading</div>
+      <p class="pnext">Get Marco's signed PDF to lock the July delivery slot. Due Jul 31.</p>
+      <div class="powes"><b>Marco</b> owes you the signed contract</div>
+    </div>
+    <div class="proj needs">
+      <div class="ptop"><span class="state">Needs you</span><span class="pmeta">gmail · ₱ overdue 12d</span><span class="pwhen">12d</span></div>
+      <div class="pname">Delgado &amp; Co. — Overdue Payment</div>
+      <p class="pnext">Approve the firm follow-up on invoice #4471 and pin a payment date.</p>
+      <div class="powes"><b>Ana</b> owes you a committed payment date</div>
+    </div>
+    <div class="proj stalled">
+      <div class="ptop"><span class="state">Stalled</span><span class="pmeta">gmail · quiet 6d</span><span class="pwhen">6d</span></div>
+      <div class="pname">Warehouse Lease Renewal</div>
+      <p class="pnext">Nudge Rina — no reply since you sent terms 6 days ago. Donna drafted a chase.</p>
+      <div class="powes"><b>Rina</b> owes you a reply</div>
+    </div>
+    <div class="proj">
+      <div class="ptop"><span class="state">On track</span><span class="pmeta">gmail · Due Jul 25</span><span class="pwhen">3d</span></div>
+      <div class="pname">BIR Q2 Filing</div>
+      <p class="pnext">Accounting has the Q2 docs — nothing needed from you yet.</p>
+      <div class="powes"><b>Accounting</b> owes confirmation</div>
+    </div>
+    <div class="proj">
+      <div class="ptop"><span class="state">On track</span><span class="pmeta">telegram · calendar</span><span class="pwhen">1d</span></div>
+      <div class="pname">Cebu Route Launch</div>
+      <p class="pnext">Review Kevin's logistics quote when it lands (expected this week).</p>
+      <div class="powes"><b>Kevin</b> owes the route quote</div>
+    </div>
   </div>
 
   <div class="label"><span>Today</span><div class="rule"></div><div class="count">4 events</div></div>
