@@ -45,7 +45,11 @@
   .donna{background:color-mix(in srgb,var(--ink) 3.5%,transparent);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:13px;}
   .donna .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:4px;}
   .donna p{margin:0;font-family:var(--serif);font-size:14.5px;line-height:1.45;}
-  .gist{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px;}
+  .gist{display:flex;flex-direction:column;gap:9px;margin:2px 0 12px;}
+  .gist ul.sum{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;}
+  .gist ul.sum li{font-size:14px;color:var(--ink-soft);line-height:1.42;}
+  .gist ul.sum li::marker{color:var(--ink-faint);}
+  .gist ul.sum li b{color:var(--ink);font-weight:600;}
   .gist .row{display:flex;gap:10px;line-height:1.42;}
   .gist .row .ic{flex:none;font-size:13px;margin-top:2px;opacity:.85;}
   .gist .row .tx{font-size:14px;color:var(--ink-soft);}
@@ -113,7 +117,10 @@
       <div class="meta"><span class="chip pri">urgent</span><span class="chip src">gmail</span><span class="who">Ana — Delgado &amp; Co.</span><span class="when">12d</span></div>
       <h3>Invoice #4471 is 12 days late</h3>
       <div class="gist">
-        <div class="row"><span class="tx">No firm payment date — it's stuck in their approval queue while finance is out. Asks if it delays the <b>next shipment</b>.</span></div>
+        <ul class="sum">
+          <li>No firm payment date — stuck in their approval queue while finance is out.</li>
+          <li>Asks whether it delays the <b>next shipment</b>.</li>
+        </ul>
         <div class="row reply"><span class="tx"><b>Donna's reply:</b> ask Ana to confirm the payment date; offer to resend the invoice.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
@@ -130,7 +137,10 @@
       <div class="meta"><span class="chip pri">high</span><span class="chip src">gmail</span><span class="who">Marco — ABC Trading</span><span class="when">2h ago</span></div>
       <h3>Re: Q3 supplier contract — revised terms attached</h3>
       <div class="gist">
-        <div class="row"><span class="tx">Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51), July window kept. Wants your signature to lock the slot.</span></div>
+        <ul class="sum">
+          <li>Revised Q3 contract in — unit price <b>₱48.50</b> (from ₱51).</li>
+          <li>July delivery window kept; wants your signature to lock the slot.</li>
+        </ul>
         <div class="row reply"><span class="tx"><b>Donna's reply:</b> approve the terms; ask for the signed PDF today to lock July.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full email &amp; draft ▾</button>
@@ -147,7 +157,10 @@
       <div class="meta"><span class="chip pri">high</span><span class="chip src">calendar</span><span class="who">Scheduling conflict</span><span class="when">Thu</span></div>
       <h3>3pm vendor call overlaps the board sync</h3>
       <div class="gist">
-        <div class="row"><span class="tx">Thursday 3pm — vendor call and board sync collide. <b>4:30pm</b> is free for both.</span></div>
+        <ul class="sum">
+          <li>Thursday 3pm — vendor call and board sync collide.</li>
+          <li><b>4:30pm</b> is free for both.</li>
+        </ul>
         <div class="row reply"><span class="tx"><b>Donna suggests:</b> move the vendor call to 4:30pm and send the reschedule note.</span></div>
       </div>
       <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
@@ -158,7 +171,10 @@
       <div class="meta"><span class="chip src">telegram</span><span class="who">Tita Cora</span><span class="when">8:04 PM</span></div>
       <h3>Sunday family lunch</h3>
       <div class="gist">
-        <div class="row"><span class="tx">Lolo's celebration, <b>Sunday 12nn</b> at the house. Wants your yes so she can buy food.</span></div>
+        <ul class="sum">
+          <li>Lolo's celebration, <b>Sunday 12nn</b> at the house.</li>
+          <li>Wants your yes so she can buy food.</li>
+        </ul>
         <div class="row reply"><span class="tx"><b>Donna's reply:</b> yes, there by 1pm; you'll bring dessert.</span></div>
       </div>
       <button class="disclose" onclick="toggleDetails(this)">Show full message &amp; draft ▾</button>
