@@ -63,6 +63,13 @@
   .btn{border:none;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);}
   .btn.primary{background:var(--ink);color:var(--paper);} .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
   .hint{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:12px;letter-spacing:.03em;user-select:none;}
+  .filebox{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:color-mix(in srgb,var(--brass) 6%,transparent);}
+  .filebox[hidden]{display:none;}
+  .filebox .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass-deep);font-weight:700;display:block;margin-bottom:8px;}
+  .fileopts{display:flex;flex-wrap:wrap;gap:7px;}
+  .fopt{font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);cursor:pointer;font-family:var(--sans);}
+  .fopt.pick{border-color:var(--brass);color:var(--ink);background:color-mix(in srgb,var(--brass) 13%,transparent);}
+  .filed{margin-top:12px;font-size:13px;color:var(--good);font-weight:600;} .filed::before{content:"✓ ";}
   .people{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;}
   .person{flex:none;width:96px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px 10px;text-align:center;}
   .person .av{width:38px;height:38px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;font-family:var(--serif);font-size:16px;font-weight:600;color:var(--paper);background:var(--brass);}
@@ -135,7 +142,8 @@
           <p class="msg">Apologies for the delay. Invoice #4471 (due July 10) is stuck in our approval queue while our finance lead is on leave. I don't have a firm date. Will this hold up the next shipment?</p></div>
         <div class="donna"><span class="tag">Full draft · in your voice</span><p>Hi Ana — just flagging invoice #4471 (due July 10) is still open. Could you confirm the payment date? Happy to resend the invoice if helpful. Thanks!</p></div>
       </div>
-      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="toggleFile(this)">Add to project</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="filebox" hidden></div>
       <div class="hint">← Later · Approve →</div>
     </div>
 
@@ -155,7 +163,8 @@
           <p class="msg">Hi, Thanks for the call earlier. As agreed I've attached the revised Q3 contract. Changes: unit price ₱48.50 (from ₱51.00); July delivery window kept with a 3-day grace period. If these look good, can you sign and return so we can lock the July slot?</p></div>
         <div class="donna"><span class="tag">Full draft · in your voice</span><p>Hi Marco — the revised terms look good on our end. Could you send the signed PDF today so we can lock the July delivery slot? Appreciate the quick turnaround.</p></div>
       </div>
-      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="toggleFile(this)">Add to project</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="filebox" hidden></div>
       <div class="hint">← Later · Approve →</div>
     </div>
 
@@ -169,7 +178,8 @@
         </ul>
         <div class="row reply"><span class="tx"><b>Donna suggests:</b> move the vendor call to 4:30pm and send the reschedule note.</span></div>
       </div>
-      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Do it</button><button class="btn ghost" onclick="toggleFile(this)">Add to project</button><button class="btn ghost" onclick="act(this,'dismiss')">Leave it</button></div>
+      <div class="filebox" hidden></div>
       <div class="hint">← Later · Approve →</div>
     </div>
 
@@ -189,7 +199,8 @@
           <p class="msg">Anak, pupunta ka ba sa Linggo? Handaan ni Lolo, 12nn sa bahay. Pakisagot na lang para makabili ako ng ulam. 🙏</p></div>
         <div class="donna"><span class="tag">Full draft · in your voice</span><p>Opo Tita, andyan ako by 1pm. Ako na bahala sa dessert 🙏</p></div>
       </div>
-      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="actions"><button class="btn primary" onclick="act(this,'approve')">Approve &amp; send</button><button class="btn ghost" onclick="edit(this)">Edit</button><button class="btn ghost" onclick="toggleFile(this)">Add to project</button><button class="btn ghost" onclick="act(this,'dismiss')">Dismiss</button></div>
+      <div class="filebox" hidden></div>
       <div class="hint">← Later · Approve →</div>
     </div>
 
@@ -208,19 +219,22 @@
       <div class="wrow"><div class="body"><div class="p">Rina Santos</div><div class="s">Re: warehouse lease renewal</div></div><span class="age old">6d</span></div>
       <p class="wctx">You sent the renewal terms <b>6 days ago</b> — no reply since. Warehouse lease is up next month.</p>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Rina — just following up on the warehouse lease renewal terms I sent last week. Any thoughts? Happy to jump on a quick call if that's easier. Thanks!</p></div>
-      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
+      <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Accounting</div><div class="s">Q2 filing — awaiting confirmation</div></div><span class="age">3d</span></div>
       <p class="wctx">Waiting on confirmation they received the <b>Q2 filing docs</b>. Deadline Jul 25.</p>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi — just confirming you received the Q2 filing documents I sent over. Let me know if anything's missing so we stay ahead of the Jul 25 deadline. Thanks!</p></div>
-      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
+      <div class="filebox" hidden></div>
     </div>
     <div class="witem">
       <div class="wrow"><div class="body"><div class="p">Kevin — Logistics</div><div class="s">Cebu route quote</div></div><span class="age">2d</span></div>
       <p class="wctx">Waiting on the <b>Cebu route quote</b> — you need it before pricing the launch.</p>
       <div class="wdraft"><span class="tag">Donna drafted a nudge</span><p>Hi Kevin — checking in on the Cebu route quote. Any update on timing? I'd like to lock our pricing this week. Thanks!</p></div>
-      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button></div>
+      <div class="wactions"><button class="btn primary" onclick="sendNudge(this)">Approve &amp; send</button><button class="btn ghost" onclick="editNudge(this)">Edit</button><button class="btn ghost" onclick="toggleFileW(this)">Add to project</button></div>
+      <div class="filebox" hidden></div>
     </div>
   </div>
 
@@ -306,6 +320,41 @@
     ta.value = p.textContent;
     ta.style.cssText = "width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:14.5px;padding:8px;min-height:80px;";
     p.replaceWith(ta); ta.focus();
+  }
+  // Donna's project suggestions — where each item most likely belongs
+  const cardSuggest = {
+    ana:   {pick:"Delgado & Co. — Overdue Payment", alts:["CDV Check Requests"]},
+    marco: {pick:"Q3 Supplier Contract — ABC Trading", alts:["Cebu Route Launch"]},
+    cal:   {pick:"Q3 Supplier Contract — ABC Trading", alts:["Cebu Route Launch"]},
+    tita:  {pick:"Personal — Family", alts:[]}
+  };
+  const witemSuggest = {
+    "Rina Santos":     {pick:"Warehouse Lease Renewal", alts:[]},
+    "Accounting":      {pick:"BIR Q2 Filing", alts:[]},
+    "Kevin — Logistics":{pick:"Cebu Route Launch", alts:[]}
+  };
+  function buildFilebox(box, s){
+    let h = '<span class="tag">Donna suggests filing this under</span><div class="fileopts">';
+    h += `<button class="fopt pick" onclick="fileInto(this)">${s.pick}</button>`;
+    (s.alts||[]).forEach(a => h += `<button class="fopt" onclick="fileInto(this)">${a}</button>`);
+    h += '<button class="fopt" onclick="fileInto(this)">New project…</button></div>';
+    box.innerHTML = h;
+  }
+  function toggleFile(btn){
+    const card = btn.closest(".card"), box = card.querySelector(".filebox");
+    if(box.hidden){ buildFilebox(box, cardSuggest[card.dataset.id] || {pick:"Choose a project"}); box.hidden = false; }
+    else box.hidden = true;
+  }
+  function toggleFileW(btn){
+    const item = btn.closest(".witem"), box = item.querySelector(".filebox");
+    if(box.hidden){ const nm = item.querySelector(".wrow .p").textContent.trim(); buildFilebox(box, witemSuggest[nm] || {pick:"Choose a project"}); box.hidden = false; }
+    else box.hidden = true;
+  }
+  function fileInto(btn){
+    const container = btn.closest(".card, .witem"), box = container.querySelector(".filebox");
+    const name = btn.textContent === "New project…" ? "a new project" : btn.textContent;
+    const done = document.createElement("div"); done.className = "filed"; done.textContent = "Filed under " + name;
+    box.replaceWith(done);
   }
   function sendNudge(btn){
     const item = btn.closest(".witem");
